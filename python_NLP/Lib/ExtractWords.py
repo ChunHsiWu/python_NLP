@@ -41,8 +41,8 @@ def takeoff_punctuation(words):
     pure_words = pun_filter.tokenize(words)  # take off all the punctuation in the sentences
     return pure_words
 
-def takeoff_stopwords(words):
-    stop_words = set(stopwords.words("english"))  # build the stopword list
+def takeoff_stopwords(words, stop_words):
+
     filter_words = [w for w in words if w not in stop_words]  # take off un-meaningful words
     return filter_words
 
@@ -50,21 +50,24 @@ def extract_useful_words(words):
     state = 0
     pure_words = []
     filter_words = []
+
+    stop_words = set(stopwords.words("english"))  # build the stopword list
+    ###
+    stop_words.remove("but")  # "but" should be still important
+    ###
     while True:
         try:
             if state == 0:
                 pure_words += takeoff_punctuation(words)
             elif state == 1:
-                filter_words += takeoff_stopwords(pure_words)
+                filter_words += takeoff_stopwords(pure_words, stop_words)
             else:    #  End process
-                print("Extracting useful words...")
+                # print("Extracting useful words...")
                 return filter_words
-                state = 0
                 break
             state += 1
         except:
             print("Unexpect error occured while extracting useful words...")
-            state = 0
             break
 
 def main():
@@ -76,4 +79,4 @@ def main():
 if __name__ == "__main__":
     main()
 else:
-    print('This file is a model')
+    print('using ExtractWords module')
