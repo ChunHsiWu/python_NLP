@@ -9,7 +9,7 @@ def open_file(file_location):
 
     workbook = xlrd.open_workbook(file_location)
     sheet = workbook.sheet_by_index(0)  # extract the first sheet
-    for ID in range(20):
+    for ID in range(sheet.nrows-1):
         productID = sheet.cell_value(ID+1,1)    # row, col
         helpness = sheet.cell_value(ID+1, 6)    # row, col
         score = sheet.cell_value(ID+1, 7)    # row, col
