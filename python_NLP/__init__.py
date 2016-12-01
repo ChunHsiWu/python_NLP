@@ -1,13 +1,14 @@
 ### Import models
-
-
+import ImportFile
 
 ### define functions
 
 
 def main():
-    print("test")
+    data_path = "../export.xls"
+    content = ImportFile.open_file(data_path)
 
+    print(content['19'])
 
 if __name__ == "__main__":
     main()
