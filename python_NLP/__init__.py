@@ -22,13 +22,15 @@ def main():
                 file_content = ImportFile.open_file(data_path, 10)  # file path, length
                 state = 2
 
-            elif state == 2:    # analysing dataset
+            elif state == 2:
                 for _ in file_content:
                     dict[str(ID)] = ExtractWords.extract_useful_words(file_content[str(ID)][4])  # extract description
                     ID += 1
                 state = 3
 
-            elif state == 3:
+            elif state == 3:     # analysing dataset
+
+                print(dict['0'])
                 analysed_words = ExtractWords.analysing_words(dict['0'])
                 print(analysed_words)
                 state = 5

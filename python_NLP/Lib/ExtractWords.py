@@ -72,7 +72,8 @@ WRB 	wh-abverb	where, when
 import nltk
 from nltk.tokenize import sent_tokenize, word_tokenize, RegexpTokenizer, PunktSentenceTokenizer
 from nltk.corpus import stopwords
-
+from nltk.corpus import movie_reviews
+import pickle
 
 ### Initial setting
 stop_words = stop_words = set(stopwords.words("english"))  # build the stopword list
@@ -138,12 +139,73 @@ def analysing_words(words):
                 categorized_words = []
                 analysed_words = []
                 state = 1
-
             elif state == 1:
-                state = 70
+                state = 11
 
             elif state == 2:
                 pass
+            # ==== NaiveBayes algorithm ====
+            # using own words
+            elif state == 10:
+                import random
+                # documents of all movie_reviews [(list of words, category)]
+                documents = [(list(movie_reviews.words(fileID)), category)
+                             for category in movie_reviews.categories()
+                             for fileID in movie_reviews.fileids(category)]
+                random.shuffle(documents)
+
+                all_words = []  # all the words from input words
+                for w in words:
+                    all_words.append(w.lower())
+                all_words = nltk.FreqDist(all_words)  # list all_words in order
+                word_features = list(all_words.keys())  # acquire the most frequently used words
+                featuresets = [(find_features(rev, word_features), cate) for (rev, cate) in documents]
+                state = 14
+            # using movie_reviews words
+            elif state == 11:
+                import random
+                # documents of all movie_reviews [(list of words, category)]
+                documents = [(list(movie_reviews.words(fileID)), category)
+                             for category in movie_reviews.categories()
+                             for fileID in movie_reviews.fileids(category)]
+                random.shuffle(documents)
+
+                all_words = []  # all the words in movie_reviews
+                for w in movie_reviews.words():
+                    all_words.append(w.lower())
+                all_words = nltk.FreqDist(all_words)  # list all_words in order
+                word_features = list(all_words.keys())[:3000]  # acquire the most frequently used words
+                featuresets = [(find_features(rev, word_features), cate) for (rev, cate) in documents]
+                state = 14
+
+                # training Naivebayes classifier
+            elif state == 12:
+
+                # set that we'll train our classifier with
+                training_set = featuresets[:1900]
+                # set that we'll test against.
+                testing_set = featuresets[1900:]
+                classifier = nltk.NaiveBayesClassifier.train(training_set)
+                print("Classifier accuracy percent:", (nltk.classify.accuracy(classifier, testing_set)) * 100)
+                classifier.show_most_informative_features(15)
+                state = 13
+
+                # save Naivebayes classifier
+            elif state == 13:
+                save_classifier = open("Naivebayes.pickle", "wb")
+                pickle.dump(classifier, save_classifier)
+                save_classifier.close()
+                state = 19
+
+                # load classifier
+            elif state == 14:
+                classifier_f = open("Naivebayes.pickle", "rb")
+                classifier = pickle.load(classifier_f)
+                classifier_f.close()
+                print("Classifier accuracy percent:", (nltk.classify.accuracy(classifier, featuresets)) * 100)
+                classifier.show_most_informative_features(15)
+                state = 19
+
             elif state == 70:
                 categorized_words = categorize_words(words)
                 state=71
@@ -197,17 +259,26 @@ def extract_useful_words(words):
             print("Unexpect error occured while extracting useful words...")
             break
 
+def find_features(document_words, raw_words):
+    words = set(document_words)
+    features = {}    # create dictionary
+    for w in raw_words:
+        features[w] = (w in words)
 
+    return features
 
 
 def main():
-    example_sentence =" hey mate, how's everything going? it's a freakin hot weather today, isnt it?"
+    # example_sentence =" hey mate, how's everything going? it's a freakin hot weather today, isnt it?"
     # useful_words = extract_useful_words(example_sentence)
     # print(useful_words)
+    pass
 
-    tokenized = sent_tokenize(example_sentence)
 
-    chunking_words(tokenized)
+
+
+
+
 
 def initial():
     stop_words.remove("but")  # "but" should be still important
