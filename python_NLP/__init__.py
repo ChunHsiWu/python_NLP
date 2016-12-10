@@ -44,7 +44,7 @@ def main():
                 #     input_words += dict[str(i)]
                 # analysed_words = AnalyseWords.analysing_words(set(input_words))
                 analysed_words = AnalyseWords.analysing_words(dict[test_ID])
-
+                print(analysed_words)
                 state = 40
 
             elif state == 40:    # print out results
