@@ -1,9 +1,9 @@
 ### Import models
-from Lib import ImportFile
+from Lib import FileInteraction
 from Lib import ExtractWords
 from Lib import AnalyseWords
+from Lib.Classifier import VoteClassifier
 
-import nltk
 ### define functions
 
 
@@ -22,7 +22,7 @@ def main():
                 state = 20
 
             elif state == 10:    # import datasets
-                file_content = ImportFile.open_file(data_path)  # file path, length
+                file_content = FileInteraction.open_file(data_path)  # file path, length
                 print("successfully import dataset")
                 state = 11
 
@@ -32,11 +32,11 @@ def main():
                     ID += 1
                 state = 12
             elif state == 12:   # export refined dataset
-                ImportFile.export_pickle(pickle_path, dict)
+                FileInteraction.export_pickle(pickle_path, dict)
                 state = 30
 
             elif state == 20:   # import pickled dataset
-                dict = ImportFile.import_pickle(pickle_path)
+                dict = FileInteraction.import_pickle(pickle_path)
                 state = 30
 
             elif state == 30:     # analysing dataset

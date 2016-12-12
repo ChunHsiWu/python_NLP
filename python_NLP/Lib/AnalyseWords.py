@@ -1,8 +1,12 @@
 ### Import models
+
 import nltk
-from Lib import ImportFile
+from Lib import FileInteraction
+from Lib import Classifier
+
 from nltk.corpus import movie_reviews
-import pickle
+import os
+
 
 ### define functions
 '''
@@ -50,67 +54,47 @@ def analysing_words(words = []):
             if state == 0:
                 categorized_words = []
                 analysed_words = []
-                state = 1
-                pickle_path = "./Doc/Naivebayes.pickle"
-                document_path = "./Doc/Movie_review_doc.pickle"
                 all_words = []  # all the words from input words
-            elif state == 1:
+                document_path = current_path + "/Doc/Movie_review_doc.pickle"
+                training_features_path = current_path + "/Doc/Training_Features.pickle"
+                classifier_dict = {}
+                load_mode = 1  # loading
                 state = 10
 
-            elif state == 2:
-                pass
-            # ==== NaiveBayes algorithm ====
-            # using own words (haven't ready yet)
+            # create test sets
             elif state == 10:
-                # import doc
-                documents = ImportFile.import_pickle(document_path)
-
-                for w in words:
-                    all_words.append(w.lower())
-                featuresets = [(find_features(rev, all_words), cate) for (rev, cate) in documents]
-                state = 14
-            # using movie_reviews words
-            elif state == 11:
-                import random
-                # documents of all movie_reviews [(list of words, category)]
-                documents = [(list(movie_reviews.words(fileID)), category)
-                             for category in movie_reviews.categories()
-                             for fileID in movie_reviews.fileids(category)]
-                random.shuffle(documents)
-
+                featuresets = FileInteraction.import_pickle(training_features_path)
+                # documents = ImportFile.import_pickle(document_path)
                 # for w in words:
-                for w in movie_reviews.words():
-                    all_words.append(w.lower())
-                all_words = nltk.FreqDist(all_words)  # list all_words in order
-                word_features = list(all_words.keys())[:3000]  # acquire the most frequently used words
-                featuresets = [(find_features(rev, word_features), cate) for (rev, cate) in documents]
+                #     all_words.append(w.lower())
+                # featuresets = [(find_features(rev, all_words), cate) for (rev, cate) in documents]
+                if load_mode == 0:
+                    state = 11
+                else:
+                    state = 12
+
+            # training algorithm
+            elif state == 11:
+                print('train algorithm')
+                classifier_input = ['Naivebayes', 'MultinomialNB', 'BernoulliNB', 'LogisticRegression', 'SGDClassifier', 'SVC',
+                         'LinearSVC', 'NuSVC', 'Combination_Classifier']
+                classifier_dict = Classifier.train_classifier(classifier_input, load_mode) # save mode
                 state = 12
-
-            # training Naivebayes classifier
+            # load classifiers
             elif state == 12:
-                # set that we'll train our classifier with
-                training_set = featuresets[:1900]
-                # set that we'll test against.
-                testing_set = featuresets[1900:]
-                classifier = nltk.NaiveBayesClassifier.train(training_set)
-                state = 13
+                print('load algorithm')
+                classifier_load = ['Naivebayes', 'MultinomialNB', 'BernoulliNB', 'LogisticRegression', 'SGDClassifier',
+                                     'SVC', 'LinearSVC', 'NuSVC', 'Combination_Classifier']
+                classifier_dict = Classifier.train_classifier(classifier_load, load_mode)  # load mode
 
-                # save Naivebayes classifier
-            # export classifier
-            elif state == 13:
-                ImportFile.export_pickle(pickle_path, classifier)
-                ImportFile.export_pickle(document_path, documents)
                 state = 15
 
-            # load classifier
-            elif state == 14:
-                classifier = ImportFile.import_pickle(pickle_path)
-                testing_set = featuresets
-                state = 15
-            # test accuracy
+            # test algorithm accuracy
             elif state == 15:
-                print("Classifier accuracy percent:", (nltk.classify.accuracy(classifier, testing_set)) * 100)
-                classifier.show_most_informative_features(50)
+                testing_set = featuresets[1900:3000]
+                for k, v in classifier_dict.items():
+                    print("classifier '", k, "' accuracy percent:",
+                          (nltk.classify.accuracy(v, testing_set)) * 100)
                 state = 19
 
             elif state == 70:
@@ -145,19 +129,16 @@ def analysing_words(words = []):
 
 
 
-
 def main():
-    # example_sentence =" hey mate, how's everything going? it's a freakin hot weather today, isnt it?"
-    # useful_words = extract_useful_words(example_sentence)
-    # print(useful_words)
     pass
-
-
 
 def initial():
     pass
 
+current_path = os.getcwd()
 if __name__ == "__main__":
+    current_path = os.path.abspath(os.path.join(current_path, os.pardir))
+    print(current_path)
     main()
 else:
     initial()
