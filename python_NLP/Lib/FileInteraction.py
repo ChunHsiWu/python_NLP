@@ -16,6 +16,17 @@ def export_pickle(pickle_path, data):
     pickle.dump(data, pickle_out)
     pickle_out.close()
 
+def import_file(path):
+    file_in = open(path, "r", encoding='utf-8')
+    data = file_in.read()
+    file_in.close()
+    return data
+def export_file(path, content):
+    file_out = open(path, "w", encoding='utf-8')
+    file_out.write(content)
+    file_out.close()
+
+
 def open_file(file_location='../export.xls',length=-1):
     dict = {}
     workbook = xlrd.open_workbook(file_location)
