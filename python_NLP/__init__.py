@@ -2,9 +2,22 @@
 from Lib import FileInteraction
 from Lib import ExtractWords
 from Lib import AnalyseWords
-from Lib.Classifier import VoteClassifier
+#from Lib.Classifier import VoteClassifier  <- keep observe
 
 ### define functions
+
+#### ==== Optimize list ====
+# replace import nltk to certain modules only <- increase loading speed, memory use
+# optimization of features
+# add more documents
+# classifier change (ML)
+# stemming and lemmatizing
+# textBlob ?? (spell correction)
+
+### note
+# Polarity analysis takes into account the amount of positive or negative terms that appear in a given sentence. (not enough for us)
+# subjectivity
+
 
 
 def main():
@@ -18,7 +31,7 @@ def main():
                 ID = 0
                 data_path = "../export.xls"
                 pickle_path= "../export.pickle"
-                test_ID = '1999'
+                test_ID = '20'
                 state = 20
 
             elif state == 10:    # import datasets

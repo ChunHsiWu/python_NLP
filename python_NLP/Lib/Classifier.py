@@ -1,8 +1,9 @@
 ### Import models
 import nltk
 
-from nltk.corpus import movie_reviews
+#from nltk.corpus import movie_reviews
 from nltk.classify.scikitlearn import SklearnClassifier
+# from nltk import classify
 from Lib import FileInteraction
 from Lib import Features
 from sklearn.naive_bayes import MultinomialNB, BernoulliNB  # including GaussianNB, BaseDiscreteNB, MultinomialNB,BernoulliNB

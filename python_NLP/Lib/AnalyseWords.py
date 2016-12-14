@@ -5,7 +5,7 @@ from Lib import FileInteraction
 from Lib import Classifier
 from Lib import Features
 from Lib.Classifier import VoteClassifier
-from nltk.corpus import movie_reviews
+#from nltk.corpus import movie_reviews
 import os
 
 
@@ -87,12 +87,8 @@ def analysing_words(words = []):
             # load classifiers
             elif state == 12:
                 print('load algorithm')
-                # classifier_load = ['Naivebayes', 'MultinomialNB', 'BernoulliNB', 'LogisticRegression', 'SGDClassifier',
-                #                      'SVC', 'LinearSVC', 'NuSVC', 'Combination_Classifier']
-                classifier_load = ['Naivebayes', 'MultinomialNB', 'BernoulliNB', 'LogisticRegression', 'SGDClassifier',
-                                   'LinearSVC', 'NuSVC']
+                classifier_load = 'Combination_Classifier'
                 classifier_dict = Classifier.train_classifier(classifier_load, load_mode)  # load mode
-                print('loading success')
                 state = 15
 
             # test algorithm accuracy
@@ -105,15 +101,9 @@ def analysing_words(words = []):
                 else:
 
                     testing_set = feats
-                    classifier = VoteClassifier(classifier_dict['Naivebayes'],
-                                                classifier_dict['MultinomialNB'],
-                                                classifier_dict['BernoulliNB'],
-                                                classifier_dict['LogisticRegression'],
-                                                classifier_dict['SGDClassifier'],
-                                                classifier_dict['LinearSVC'],
-                                                classifier_dict['NuSVC'])
-                    print("classifier 'Combination_Classifier' Classification:", classifier.classify(testing_set))
-                    print("with confidence", classifier.confidence(testing_set)*100 )
+                    for k, v in classifier_dict.items():
+                        print("classifier",k , "Classification:", v.classify(testing_set))
+                        print("with confidence", v.confidence(testing_set) * 100)
 
                 state = 19
 
