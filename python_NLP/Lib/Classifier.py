@@ -4,7 +4,7 @@ import nltk
 from nltk.corpus import movie_reviews
 from nltk.classify.scikitlearn import SklearnClassifier
 from Lib import FileInteraction
-
+from Lib import Features
 from sklearn.naive_bayes import MultinomialNB, BernoulliNB  # including GaussianNB, BaseDiscreteNB, MultinomialNB,BernoulliNB
 from sklearn.linear_model import LogisticRegression, SGDClassifier
 from sklearn.svm import SVC, LinearSVC, NuSVC
@@ -14,7 +14,6 @@ from statistics import mode
 import os
 
 #
-
 class VoteClassifier(ClassifierI):
     def __init__(self, *classifiers):
         self._classifiers = classifiers
@@ -37,12 +36,12 @@ class VoteClassifier(ClassifierI):
         return conf
 
 
-def find_features(document_words, raw_words):
-    words = set(document_words)
-    features = {}  # create dictionary
-    for w in raw_words:
-        features[w] = (w in words)
-    return features
+# def find_features(document_words, raw_words):
+#     words = set(document_words)
+#     features = {}  # create dictionary
+#     for w in raw_words:
+#         features[w] = (w in words)
+#     return features
 
 
 def train_classifier(input, load_mode = 1):
@@ -55,7 +54,7 @@ def train_classifier(input, load_mode = 1):
             if state == 0:
                 document_path = current_path + "/Doc/Movie_review_doc.pickle"
                 training_features_path = current_path + "/Doc/Training_Features.pickle"
-
+                word_features_path = current_path + "/Doc/Word_Features.pickle"
 
                 Naivebayes_classifier_path = current_path + "/Doc/Naivebayes.pickle"
                 BernoulliNB_classifer_path = current_path + "/Doc/BernoulliNB.pickle"
@@ -64,7 +63,7 @@ def train_classifier(input, load_mode = 1):
                 SGDClassifier_classifer_path = current_path + "/Doc/SGDClassifier.pickle"
                 LinearSVC_classifer_path = current_path + "/Doc/LinearSVC.pickle"
                 NuSVC_classifer_path = current_path + "/Doc/NuSVC.pickle"
-
+                Doc_dict = {}
                 all_words = []  # all the words from input words
                 featuresets =[]
                 documents = []
@@ -72,36 +71,41 @@ def train_classifier(input, load_mode = 1):
 
             # create training documents
             elif state == 10:
-                import random
-                # documents of all movie_reviews [(list of words, category)]
-                documents = [(list(movie_reviews.words(fileID)), category)
-                             for category in movie_reviews.categories()
-                             for fileID in movie_reviews.fileids(category)]
-                random.shuffle(documents)
-
-                for w in movie_reviews.words():
-                    all_words.append(w.lower())
-                all_words = nltk.FreqDist(all_words)  # list all_words in order
-                word_features = list(all_words.keys())[:6000]  # acquire the most frequently used words
-                featuresets = [(find_features(rev, word_features), cate) for (rev, cate) in documents]
+                Doc_dict = Features.word_features(6000)
+                featuresets = [(Features.find_features(rev, Doc_dict['word_features']), cate) for (rev, cate) in Doc_dict['document']]
+                # import random
+                # # documents of all movie_reviews [(list of words, category)]
+                # documents = [(list(movie_reviews.words(fileID)), category)
+                #              for category in movie_reviews.categories()
+                #              for fileID in movie_reviews.fileids(category)]
+                # random.shuffle(documents)
+                #
+                # for w in movie_reviews.words():
+                #     all_words.append(w.lower())
+                # all_words = nltk.FreqDist(all_words)  # list all_words in order
+                # word_features = list(all_words.keys())[:6000]  # acquire the most frequently used words
+                # featuresets = [(find_features(rev, word_features), cate) for (rev, cate) in documents]
                 state = 11
             # save document & featuresets
             elif state == 11:
-                FileInteraction.export_pickle(document_path, documents)
+                FileInteraction.export_pickle(document_path, Doc_dict['document'])
+                FileInteraction.export_pickle(word_features_path, Doc_dict['word_features'])
                 FileInteraction.export_pickle(training_features_path, featuresets)
+
                 state = 20
 
             # load document
             elif state == 12:
-                documents = FileInteraction.import_pickle(document_path)
-                featuresets = FileInteraction.import_pickle(training_features_path)
+                Doc_dict['document'] = FileInteraction.import_pickle(document_path)
+                Doc_dict['word_features'] = FileInteraction.import_pickle(word_features_path)
+                # featuresets = FileInteraction.import_pickle(training_features_path)
                 state = 20
             # ==== Training algorithm ====
             # identify classifier
             elif state == 20:
-                training_set = featuresets[:]
-                testing_set = featuresets[1900:3000]
                 if load_mode ==0:   # saving
+                    training_set = featuresets[:]
+                    testing_set = featuresets[1900:3000]
                     state = 21
                 else:
                     state = 23
@@ -193,9 +197,9 @@ def train_classifier(input, load_mode = 1):
                 pass
 
             else:
-                print('step', state)
                 state = 0
                 list_index = 0
+                return classifier_dict
                 print("End training test")
                 break
         except:

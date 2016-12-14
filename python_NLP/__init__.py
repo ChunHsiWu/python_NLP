@@ -18,7 +18,7 @@ def main():
                 ID = 0
                 data_path = "../export.xls"
                 pickle_path= "../export.pickle"
-                test_ID = '20'
+                test_ID = '1999'
                 state = 20
 
             elif state == 10:    # import datasets

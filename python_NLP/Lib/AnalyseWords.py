@@ -3,7 +3,8 @@
 import nltk
 from Lib import FileInteraction
 from Lib import Classifier
-
+from Lib import Features
+from Lib.Classifier import VoteClassifier
 from nltk.corpus import movie_reviews
 import os
 
@@ -58,43 +59,62 @@ def analysing_words(words = []):
                 document_path = current_path + "/Doc/Movie_review_doc.pickle"
                 training_features_path = current_path + "/Doc/Training_Features.pickle"
                 classifier_dict = {}
-                load_mode = 1  # loading
+                load_mode = 1  # 1 = loading
                 state = 10
 
             # create test sets
             elif state == 10:
-                featuresets = FileInteraction.import_pickle(training_features_path)
-                # documents = ImportFile.import_pickle(document_path)
-                # for w in words:
-                #     all_words.append(w.lower())
-                # featuresets = [(find_features(rev, all_words), cate) for (rev, cate) in documents]
                 if load_mode == 0:
+                    featuresets = FileInteraction.import_pickle(training_features_path)
                     state = 11
                 else:
+                    Doc_dict = {}
+                    document_path = current_path + "/Doc/Movie_review_doc.pickle"
+                    word_features_path = current_path + "/Doc/Word_Features.pickle"
+                    Doc_dict['document'] = FileInteraction.import_pickle(document_path)
+                    Doc_dict['word_features'] = FileInteraction.import_pickle(word_features_path)
+                    feats = Features.find_features(words, Doc_dict['word_features'])
                     state = 12
 
             # training algorithm
             elif state == 11:
+
                 print('train algorithm')
                 classifier_input = ['Naivebayes', 'MultinomialNB', 'BernoulliNB', 'LogisticRegression', 'SGDClassifier', 'SVC',
                          'LinearSVC', 'NuSVC', 'Combination_Classifier']
                 classifier_dict = Classifier.train_classifier(classifier_input, load_mode) # save mode
-                state = 12
+                state = 15
             # load classifiers
             elif state == 12:
                 print('load algorithm')
+                # classifier_load = ['Naivebayes', 'MultinomialNB', 'BernoulliNB', 'LogisticRegression', 'SGDClassifier',
+                #                      'SVC', 'LinearSVC', 'NuSVC', 'Combination_Classifier']
                 classifier_load = ['Naivebayes', 'MultinomialNB', 'BernoulliNB', 'LogisticRegression', 'SGDClassifier',
-                                     'SVC', 'LinearSVC', 'NuSVC', 'Combination_Classifier']
+                                   'LinearSVC', 'NuSVC']
                 classifier_dict = Classifier.train_classifier(classifier_load, load_mode)  # load mode
-
+                print('loading success')
                 state = 15
 
             # test algorithm accuracy
             elif state == 15:
-                testing_set = featuresets[1900:3000]
-                for k, v in classifier_dict.items():
-                    print("classifier '", k, "' accuracy percent:",
-                          (nltk.classify.accuracy(v, testing_set)) * 100)
+                if load_mode == 0:
+                    testing_set = featuresets[1900:3000]
+                    for k, v in classifier_dict.items():
+                        print("classifier '", k, "' accuracy percent:",
+                              (nltk.classify.accuracy(v, testing_set)) * 100)
+                else:
+
+                    testing_set = feats
+                    classifier = VoteClassifier(classifier_dict['Naivebayes'],
+                                                classifier_dict['MultinomialNB'],
+                                                classifier_dict['BernoulliNB'],
+                                                classifier_dict['LogisticRegression'],
+                                                classifier_dict['SGDClassifier'],
+                                                classifier_dict['LinearSVC'],
+                                                classifier_dict['NuSVC'])
+                    print("classifier 'Combination_Classifier' Classification:", classifier.classify(testing_set))
+                    print("with confidence", classifier.confidence(testing_set)*100 )
+
                 state = 19
 
             elif state == 70:

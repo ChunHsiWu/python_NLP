@@ -10,57 +10,87 @@ from Lib import FileInteraction
 
 
 
-def find_features(document_words, raw_words):
-    words = set(document_words)
+def find_features(document_words, word_features):
+    words = set(document_words) #<- change to feature words
     features = {}  # create dictionary
-    for w in raw_words:
+    for w in word_features:
         features[w] = (w in words)
     return features
 
-def get_documents():
-    pass
+def word_features(frequency):   # return documents & word_features
+    state = 0
+    while isinstance(frequency, int):
+        try:
+            if state == 0:
+                documents = []
+                all_words = []  # all the words from input words
+                dict = {}
+                state = 10
+            # load document and all words from NLTK movie review
+            elif state == 10:
+                documents = [(list(movie_reviews.words(fileID)), category)
+                             for category in movie_reviews.categories()
+                             for fileID in movie_reviews.fileids(category)]
+                # documents[:1000]  # neg
+                # documents[1000:]  # pos
+                for w in movie_reviews.words():
+                    all_words.append(w.lower())
+                state = 11
+            # load document and all words from https://pythonprogramming.net/static/downloads/short_reviews/
+            elif state == 11:
+                pos_doc_path = current_path + "/Doc/positive.csv"
+                neg_doc_path = current_path + "/Doc//negative.csv"
+                pos_doc = FileInteraction.import_file(pos_doc_path)
+                neg_doc = FileInteraction.import_file(neg_doc_path)
+                for r in pos_doc.split('\n'):
+                    documents.append((nltk.word_tokenize(r), "pos"))
+
+                for r in neg_doc.split('\n'):
+                    documents.append((nltk.word_tokenize(r), "neg"))
+
+                for w in nltk.word_tokenize(pos_doc):
+                    all_words.append(w.lower())
+                for w in nltk.word_tokenize(neg_doc):
+                    all_words.append(w.lower())
+                state = 12
+            # load document and all words from https://github.com/jeffreybreen/twitter-sentiment-analysis-tutorial-201107/tree/master/data/opinion-lexicon-English
+            elif state == 12:
+                pos_doc_path = current_path + "/Doc/positive-words.csv"
+                neg_doc_path = current_path + "/Doc//negative-words.csv"
+                pos_doc = FileInteraction.import_file(pos_doc_path)
+                neg_doc = FileInteraction.import_file(neg_doc_path)
+                documents.append((list(nltk.word_tokenize(pos_doc)), "pos"))
+                documents.append((list(nltk.word_tokenize(neg_doc)), "neg"))
+                for w in nltk.word_tokenize(pos_doc):
+                    all_words.append(w.lower())
+                for w in nltk.word_tokenize(neg_doc):
+                    all_words.append(w.lower())
+                state = 20
+            elif state == 20:
+                random.shuffle(documents)
+                dict['document'] = documents
+                state = 21
+            # return
+            elif state == 21:
+                all_words = nltk.FreqDist(all_words)  # list all_words in order
+                word_features = list(all_words.keys())[:frequency]  # acquire the most frequently used words
+                dict['word_features'] = word_features
+                state = 999
+            else:
+                return dict
+
+        except:
+            print("Unexpect error occured while loading review documents ...")
+            break
 
 
 def main():
-    documents = []
-    all_words = []  # all the words from input words
-
-    documents = [(list(movie_reviews.words(fileID)), category)
-                 for category in movie_reviews.categories()
-                 for fileID in movie_reviews.fileids(category)]
-
-    # documents[:(len(NLTK_documents)/2)]  # neg
-    # documents[(len(NLTK_documents)/2):]  # pos
-
-    pos_doc_path = current_path + "/Doc/positive.csv"
-    neg_doc_path = current_path + "/Doc//negative.csv"
-    pos_doc = FileInteraction.import_file(pos_doc_path)
-    neg_doc = FileInteraction.import_file(neg_doc_path)
-
-
-    for r in pos_doc.split('\n'):
-        documents.append((nltk.word_tokenize(r), "pos"))
-
-    for r in neg_doc.split('\n'):
-        documents.append((nltk.word_tokenize(r), "neg"))
-
-    random.shuffle(documents)
-
-
-    for w in movie_reviews.words():
-        all_words.append(w.lower())
-
-    for w in nltk.word_tokenize(pos_doc):
-        all_words.append(w.lower())
-
-    for w in nltk.word_tokenize(neg_doc):
-        all_words.append(w.lower())
-
-
-    all_words = nltk.FreqDist(all_words)  # list all_words in order
-    word_features = list(all_words.keys())[:6000]  # acquire the most frequently used words
-    featuresets = [(find_features(rev, word_features), cate) for (rev, cate) in documents]
-    print(len(featuresets))
+    Doc_dict={}
+    document_path = current_path + "/Doc/Movie_review_doc.pickle"
+    training_features_path = current_path + "/Doc/Training_Features.pickle"
+    word_features_path = current_path + "/Doc/Word_Features.pickle"
+    Doc_dict['document'] = FileInteraction.import_pickle(document_path)
+    Doc_dict['word_features'] = FileInteraction.import_pickle(word_features_path)
     training_set = featuresets[:10000]
     testing_set = featuresets[10000:]
     # input_classifier =
