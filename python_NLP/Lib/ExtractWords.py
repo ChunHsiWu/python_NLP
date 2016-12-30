@@ -71,13 +71,67 @@ WRB 	wh-abverb	where, when
 ### Import models
 
 from nltk.tokenize import sent_tokenize, word_tokenize, RegexpTokenizer, PunktSentenceTokenizer
+from nltk.tag import pos_tag
 from nltk.corpus import stopwords
-
-
+import os
+from Lib import FileInteraction
+from nltk.tag import StanfordPOSTagger, StanfordNERTagger
+from nltk.stem import WordNetLemmatizer
+# from autocorrect import spell
+from nltk.stem import PorterStemmer
 ### Initial setting
-stop_words = stop_words = set(stopwords.words("english"))  # build the stopword list
+stop_words = set(stopwords.words("english"))  # build the stopword list
+current_path = os.getcwd()
+# stop_words = list(word_tokenize(FileInteraction.import_file(current_path+'/Doc/stopwords_en.txt')))  # build the stopword list
 
 ### define functions
+def spellingcorrector(words):
+    suggestions = []
+    for w in words:
+        suggestions.append(spell(w))
+    return suggestions
+def os_time():
+    return os.times()[4]
+
+
+
+def lemmatizing_words(words):
+    lema_words=[]
+    lemmatizer = WordNetLemmatizer()
+    for w in words:
+        lema_words.append(lemmatizer.lemmatize(w))
+    return lema_words
+
+
+
+def stemming_words(words):
+    stem_words = []
+    ps = PorterStemmer()
+    for w in words:
+        stem_words.append(ps.stem(w))
+    return stem_words
+'''
+Categorize words
+eg.
+[('PRESIDENT', 'NNP'), ('GEORGE', 'NNP'), ('W.', 'NNP'), ('BUSH', 'NNP')]
+'''
+def categorize_words(words):
+    # jar_path = '/usr/local/share/nltk_data/stanford-postagger/stanford-postagger-3.6.0.jar'
+    # tag_path = '/usr/local/share/nltk_data/stanford-postagger/models/english-bidirectional-distsim.tagger'
+    # st = StanfordPOSTagger(tag_path, jar_path, encoding='utf-8')
+    # POS_words = st.tag(words)
+    POS_words = pos_tag(words)
+    return POS_words
+
+#  j is adject, r is adverb, and v is verb
+def categorized_words_filter(words):
+    filter_words = []
+    allowed_word_types = ["JJ", "JJR", "JJS", "RB", "RBR", "RBS", "VB", "VBP", "VBD", "VBG", "VBN", "VBZ"]
+    for w in words:
+        if w[1] in allowed_word_types:
+            filter_words.append(w[0].lower())
+
+    return filter_words
 
 '''
 take off punctuation from words
@@ -97,25 +151,82 @@ eg.
 def takeoff_stopwords(words, stop_words):
     filter_words = [w for w in words if w not in stop_words]  # take off un-meaningful words
     return filter_words
+# '''
+# Take off un-useful categorized words
+# eg.
+#     'NNP', 'PRP'
+# '''
+# def chunking_words(words):
+#     try:
+#         tagged = nltk.pos_tag(words)
+#         chunkGram = r"""Chunk: {<RB.?>*<VB.?>*<NNP>+<NN>?}""" # chunking all types of adv, V, prop N and N
+#         chunkParser = nltk.RegexpParser(chunkGram)
+#         chunked = chunkParser.parse(tagged)
+#         # chunked.draw()
+#         print(chunked)
+#     except TypeError:
+#         print("input type should be lists")
+#     except Exception as e:
+#         print(str(e))
 
 def extract_useful_words(words):
     state = 0
     while True:
         try:
             if state == 0:
-                process_words = []
+                input_words = words.lower() # lower case for all words
+                processd_words = []
+                # process_time0 = os_time()
                 state = 1
 
             elif state == 1:
-                process_words = takeoff_punctuation(words)
+                processd_words = takeoff_punctuation(input_words)
+                input_words = processd_words
                 state = 2
 
             elif state == 2:
-                process_words = takeoff_stopwords(process_words, stop_words)
-                state = 9
+                processd_words = takeoff_stopwords(input_words, stop_words)
+                input_words = processd_words
+                state = 61
+
+            # correct spelling
+            elif state == 50:
+                processd_words = spellingcorrector(input_words)
+                input_words = processd_words
+                state = 60
+            # stemming words
+            elif state == 60:
+                processd_words = stemming_words(input_words)
+                input_words = processd_words
+                # print(lemmatizer.lemmatize("better", pos="a"))
+                state = 69
+            # lemmatize using to find synonym
+            elif state == 61:
+                processd_words = lemmatizing_words(input_words)
+                input_words = processd_words
+                # print(lemmatizer.lemmatize("better", pos="a"))
+                state = 70
+            # words filter
+            elif state == 70:
+                categorized_words = categorize_words(input_words)
+                state = 71
+            elif state == 71:
+                processd_words = categorized_words_filter(categorized_words)
+                input_words = processd_words
+                state = 79
+
+
+
+            # # chunking algorithm
+            # elif state == 90:
+            #     analysed_words = chunking_words(words)  # chunk same POS together
+            #     state = 99
+
             else:    #  End process
-                # print("Extracting useful words...")
-                return process_words
+                # # print("Extracting useful words...")
+                # process_time1 = os_time()
+                # print('total process time: ', process_time1 - process_time0)
+                return processd_words
                 break
 
         except:
@@ -132,9 +243,11 @@ def main():
 
 
 def initial():
-    stop_words.remove("but")  # "but" should be still important
-
+    # stop_words.remove("but")  # "but" should be still important
+    pass
 if __name__ == "__main__":
+    current_path = os.path.abspath(os.path.join(current_path, os.pardir))
+    print(current_path)
     main()
 else:
     initial()

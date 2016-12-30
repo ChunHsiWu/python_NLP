@@ -53,6 +53,7 @@ def train_classifier(input, load_mode = 1):
     while isinstance(input, (list, str)) and list_index < len(input):
         try:
             if state == 0:
+                print("Classifier step: ", state)
                 document_path = current_path + "/Doc/Movie_review_doc.pickle"
                 training_features_path = current_path + "/Doc/Training_Features.pickle"
                 word_features_path = current_path + "/Doc/Word_Features.pickle"
@@ -68,12 +69,18 @@ def train_classifier(input, load_mode = 1):
                 all_words = []  # all the words from input words
                 featuresets =[]
                 documents = []
-                state = 12
+                if load_mode == 1:
+                    state = 12
+                else:
+                    state = 10
 
             # create training documents
             elif state == 10:
+                print("Classifier step: ", state)
                 Doc_dict = Features.word_features(6000)
                 featuresets = [(Features.find_features(rev, Doc_dict['word_features']), cate) for (rev, cate) in Doc_dict['document']]
+                print(len(featuresets))
+                print(featuresets[1])
                 # import random
                 # # documents of all movie_reviews [(list of words, category)]
                 # documents = [(list(movie_reviews.words(fileID)), category)
@@ -89,6 +96,7 @@ def train_classifier(input, load_mode = 1):
                 state = 11
             # save document & featuresets
             elif state == 11:
+                print("Classifier step: ", state)
                 FileInteraction.export_pickle(document_path, Doc_dict['document'])
                 FileInteraction.export_pickle(word_features_path, Doc_dict['word_features'])
                 FileInteraction.export_pickle(training_features_path, featuresets)
@@ -97,6 +105,7 @@ def train_classifier(input, load_mode = 1):
 
             # load document
             elif state == 12:
+                print("Classifier step: ", state)
                 Doc_dict['document'] = FileInteraction.import_pickle(document_path)
                 Doc_dict['word_features'] = FileInteraction.import_pickle(word_features_path)
                 # featuresets = FileInteraction.import_pickle(training_features_path)
@@ -104,9 +113,10 @@ def train_classifier(input, load_mode = 1):
             # ==== Training algorithm ====
             # identify classifier
             elif state == 20:
+                print("Classifier step: ", state)
                 if load_mode ==0:   # saving
-                    training_set = featuresets[:]
-                    testing_set = featuresets[1900:3000]
+                    training_set = featuresets[:10000]
+                    testing_set = featuresets[10000:]
                     state = 21
                 else:
                     state = 23
@@ -166,18 +176,23 @@ def train_classifier(input, load_mode = 1):
 
             # training classifier
             elif state == 21:
+                print("Classifier step: ", state)
+                print(len(training_set))
+                print(training_set[1])
                 trained_classifer = classifier.train(training_set)
                 print("classifier '", input_classifier , "' accuracy percent:",
                       (nltk.classify.accuracy(trained_classifer, testing_set)) * 100)
                 state = 22
             # pickling trained classifier
             elif state == 22:
+                print("Classifier step: ", state)
                 classifer_path = current_path + '/Doc/' + input_classifier + '.pickle'
                 FileInteraction.export_pickle(classifer_path, trained_classifer)
                 state = 24
 
             # load trained classifier
             elif state == 23:
+                print("Classifier step: ", state)
                 # classifer_path = '../Doc/'+ input_classifier + '.pickle'
                 classifer_path = current_path + '/Doc/' + input_classifier + '.pickle'
                 trained_classifer = FileInteraction.import_pickle(classifer_path)
@@ -185,6 +200,7 @@ def train_classifier(input, load_mode = 1):
 
             # set classifier dictionary for list
             elif state == 24:
+                print("Classifier step: ", state)
                 classifier_dict[input_classifier] = trained_classifer
                 if isinstance(input, list):
                     classifier_path_dict[input_classifier] = classifer_path

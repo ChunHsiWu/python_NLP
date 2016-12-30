@@ -2,6 +2,7 @@
 from Lib import FileInteraction
 from Lib import ExtractWords
 from Lib import AnalyseWords
+
 #from Lib.Classifier import VoteClassifier  <- keep observe
 
 ### define functions
@@ -17,6 +18,7 @@ from Lib import AnalyseWords
 ### note
 # Polarity analysis takes into account the amount of positive or negative terms that appear in a given sentence. (not enough for us)
 # subjectivity
+# opinion mining
 
 
 
@@ -30,12 +32,12 @@ def main():
                 input_words = []
                 ID = 0
                 data_path = "../export.xls"
-                pickle_path= "../export.pickle"
-                test_ID = '20'
-                state = 20
+                pickle_path = "../filtered_export.pickle"
+                test_ID = '1'
+                state = 13
 
             elif state == 10:    # import datasets
-                file_content = FileInteraction.open_file(data_path)  # file path, length
+                file_content = FileInteraction.open_file(data_path, 10)  # file path, length
                 print("successfully import dataset")
                 state = 11
 
@@ -46,9 +48,9 @@ def main():
                 state = 12
             elif state == 12:   # export refined dataset
                 FileInteraction.export_pickle(pickle_path, dict)
-                state = 30
+                state = 39
 
-            elif state == 20:   # import pickled dataset
+            elif state == 13:   # import pickled dataset
                 dict = FileInteraction.import_pickle(pickle_path)
                 state = 30
 
@@ -56,7 +58,13 @@ def main():
                 # for i in range(len(dict)):
                 #     input_words += dict[str(i)]
                 # analysed_words = AnalyseWords.analysing_words(set(input_words))
-                analysed_words = AnalyseWords.analysing_words(dict[test_ID])
+
+
+                test_content = FileInteraction.open_file(data_path)  # file path, length
+                print(test_content[str(ID)][4])
+                analysed_words = AnalyseWords.analysing_words(test_content[str(ID)][4])
+                print(dict[test_ID])
+                # analysed_words = AnalyseWords.analysing_words(dict[test_ID])
                 print(analysed_words)
                 state = 40
 
@@ -73,7 +81,6 @@ def main():
         except:
             print("Error occurred")
             break
-
 
 
 if __name__ == "__main__":
