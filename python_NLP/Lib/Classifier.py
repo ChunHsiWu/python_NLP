@@ -77,7 +77,7 @@ def train_classifier(input, load_mode = 1):
             # create training documents
             elif state == 10:
                 print("Classifier step: ", state)
-                Doc_dict = Features.word_features(6000)
+                Doc_dict = Features.word_features(10000)
                 featuresets = [(Features.find_features(rev, Doc_dict['word_features']), cate) for (rev, cate) in Doc_dict['document']]
                 print(len(featuresets))
                 print(featuresets[1])
