@@ -72,16 +72,20 @@ def analysing_words(words=[]):
             # test algorithm accuracy
             elif state == 15:
                 if load_mode == 0:
-                    testing_set = featuresets[1900:3000]
+                    testing_set = featuresets[12000:]
                     for k, v in classifier_dict.items():
                         print("classifier '", k, "' accuracy percent:",
                               (nltk.classify.accuracy(v, testing_set)) * 100)
                 else:
-
                     testing_set = feats
                     for k, v in classifier_dict.items():
                         print("classifier",k , "Classification:", v.classify(testing_set))
                         print("with confidence", v.confidence(testing_set) * 100)
+                    # featuresets = FileInteraction.import_pickle(training_features_path)
+                    # testing_set = featuresets[12000:]
+                    # for k, v in classifier_dict.items():
+                    #     print("classifier '", k, "' accuracy percent:",
+                    #           (nltk.classify.accuracy(v, testing_set)) * 100)
 
 
 

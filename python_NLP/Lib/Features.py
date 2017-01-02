@@ -27,17 +27,23 @@ def word_features(frequency):   # return documents & word_features
                 documents = []
                 all_words = []  # all the words from input words
                 dict = {}
-                state = 11
+                state = 10
             # load document and all words from NLTK movie review
             elif state == 10:
                 print("Features step: ", state)
-                documents = [(list(movie_reviews.words(fileID)), category)
+                # documents = [(list(movie_reviews.words(fileID)), category)
+                #              for category in movie_reviews.categories()
+                #              for fileID in movie_reviews.fileids(category)]
+                documents = [(list(ExtractWords.extract_useful_words(' '.join(movie_reviews.words(fileID)))), category)
                              for category in movie_reviews.categories()
                              for fileID in movie_reviews.fileids(category)]
-                # documents[:1000]  # neg
-                # documents[1000:]  # pos
-                for w in movie_reviews.words():
-                    all_words.append(w.lower())
+                for x in documents:
+                    for y in x[0]:
+                        all_words.append(y)
+                # # documents[:1000]  # neg
+                # # documents[1000:]  # pos
+                # for w in movie_reviews.words():
+                #     all_words.append(w.lower())
                 state = 11
             # load document and all words from https://pythonprogramming.net/static/downloads/short_reviews/
             elif state == 11:
@@ -66,7 +72,7 @@ def word_features(frequency):   # return documents & word_features
                 for w in ExtractWords.extract_useful_words(neg_doc):
                     all_words.append(w)
                 print(all_words)
-                state = 20
+                state = 12
             # load document and all words from https://github.com/jeffreybreen/twitter-sentiment-analysis-tutorial-201107/tree/master/data/opinion-lexicon-English
             elif state == 12:
                 print("Features step: ", state)
@@ -76,14 +82,14 @@ def word_features(frequency):   # return documents & word_features
                 neg_doc = FileInteraction.import_file(neg_doc_path)
                 documents.append((list(word_tokenize(pos_doc)), "pos"))
                 documents.append((list(word_tokenize(neg_doc)), "neg"))
-                # for w in word_tokenize(pos_doc):
-                #     all_words.append(w.lower())
-                # for w in word_tokenize(neg_doc):
-                #     all_words.append(w.lower())
-                for w in ExtractWords.extract_useful_words(pos_doc):
+                for w in word_tokenize(pos_doc):
                     all_words.append(w.lower())
-                for w in ExtractWords.extract_useful_words(neg_doc):
+                for w in word_tokenize(neg_doc):
                     all_words.append(w.lower())
+                # for w in ExtractWords.extract_useful_words(pos_doc):
+                #     all_words.append(w.lower())
+                # for w in ExtractWords.extract_useful_words(neg_doc):
+                #     all_words.append(w.lower())
                 state = 20
             elif state == 20:
                 print("Features step: ", state)
@@ -95,6 +101,7 @@ def word_features(frequency):   # return documents & word_features
                 print("Features step: ", state)
                 # all_words = nltk.FreqDist(all_words)  # list all_words in order
                 all_words = FreqDist(all_words)  # list all_words in order
+                print(all_words.most_common(50))
                 word_features = list(all_words.keys())[:frequency]  # acquire the most frequently used words
                 dict['word_features'] = word_features
                 state = 999
@@ -113,8 +120,8 @@ def main():
     word_features_path = current_path + "/Doc/Word_Features.pickle"
     Doc_dict['document'] = FileInteraction.import_pickle(document_path)
     Doc_dict['word_features'] = FileInteraction.import_pickle(word_features_path)
-    training_set = featuresets[:10000]
-    testing_set = featuresets[10000:]
+    training_set = featuresets[:12000]
+    testing_set = featuresets[12000:]
     # input_classifier =
     # classifer_path = current_path + '/Doc/' + input_classifier + '.pickle'
     # trained_classifer = FileInteraction.import_pickle(classifer_path)

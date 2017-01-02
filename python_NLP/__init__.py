@@ -33,17 +33,17 @@ def main():
                 ID = 0
                 data_path = "../export.xls"
                 pickle_path = "../filtered_export.pickle"
-                test_ID = '1'
+                test_ID = '0'
                 state = 13
 
             elif state == 10:    # import datasets
-                file_content = FileInteraction.open_file(data_path, 10)  # file path, length
+                file_content = FileInteraction.open_file(data_path)  # file path, length
                 print("successfully import dataset")
                 state = 11
 
             elif state == 11:
                 for _ in file_content:
-                    dict[str(ID)] = ExtractWords.extract_useful_words(file_content[str(ID)][4])  # extract description
+                    dict[str(ID)] = ExtractWords.extract_useful_words(file_content[str(ID)][4])
                     ID += 1
                 state = 12
             elif state == 12:   # export refined dataset
@@ -60,12 +60,12 @@ def main():
                 # analysed_words = AnalyseWords.analysing_words(set(input_words))
 
 
-                test_content = FileInteraction.open_file(data_path)  # file path, length
-                print(test_content[str(ID)][4])
-                analysed_words = AnalyseWords.analysing_words(test_content[str(ID)][4])
-                print(dict[test_ID])
-                # analysed_words = AnalyseWords.analysing_words(dict[test_ID])
-                print(analysed_words)
+                # test_content = FileInteraction.open_file(data_path)  # file path, length
+                # print(test_content[str(ID)])
+                # analysed_words = AnalyseWords.analysing_words(test_content[str(ID)])
+                # print(dict[test_ID])
+                analysed_words = AnalyseWords.analysing_words(dict[test_ID])
+                # print(analysed_words)
                 state = 40
 
             elif state == 40:    # print out results

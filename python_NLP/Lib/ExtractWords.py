@@ -77,7 +77,7 @@ import os
 from Lib import FileInteraction
 from nltk.tag import StanfordPOSTagger, StanfordNERTagger
 from nltk.stem import WordNetLemmatizer
-# from autocorrect import spell
+#from autocorrect import spell
 from nltk.stem import PorterStemmer
 ### Initial setting
 stop_words = set(stopwords.words("english"))  # build the stopword list
@@ -139,7 +139,15 @@ eg.
     '%', '&', '@', '#', '$'
 '''
 def takeoff_punctuation(words):
-    pun_filter = RegexpTokenizer(r'\w+')
+    # pun_filter = RegexpTokenizer(r'[\'\w\-]+|[A-Z]{2,}(?![a-z])|[^a-z]')
+    pun_filter = RegexpTokenizer(r'\w+\-\w+|\w+\'\w|[A-Z]{2,}(?![a-z])|[a-zA-Z]\w+')
+    # \w+ all word character
+    # \w+\-\w+, \w+\'\w words which may contain ' and -
+    # [A-Z]{2,}(?![a-z]) words with all letters capital
+    # [a-z] only for small letter words
+    # [a-zA-Z]\w+ all words except single letter word
+    # \w+\-\w+|[a-z]\w+\'\w|[A-Z]{2,}(?![a-z])|\b[a-z]\w+
+
     pure_words = pun_filter.tokenize(words)  # take off all the punctuation in the sentences
     return pure_words
 
@@ -174,7 +182,7 @@ def extract_useful_words(words):
     while True:
         try:
             if state == 0:
-                input_words = words.lower() # lower case for all words
+                input_words = words # lower case for all words
                 processd_words = []
                 # process_time0 = os_time()
                 state = 1
@@ -193,7 +201,7 @@ def extract_useful_words(words):
             elif state == 50:
                 processd_words = spellingcorrector(input_words)
                 input_words = processd_words
-                state = 60
+                state = 61
             # stemming words
             elif state == 60:
                 processd_words = stemming_words(input_words)

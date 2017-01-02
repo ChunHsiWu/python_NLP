@@ -115,8 +115,8 @@ def train_classifier(input, load_mode = 1):
             elif state == 20:
                 print("Classifier step: ", state)
                 if load_mode ==0:   # saving
-                    training_set = featuresets[:10000]
-                    testing_set = featuresets[10000:]
+                    training_set = featuresets[:12000]
+                    testing_set = featuresets[12000:]
                     state = 21
                 else:
                     state = 23
