@@ -61,9 +61,9 @@ def main():
 
 
                 # test_content = FileInteraction.open_file(data_path)  # file path, length
-                # print(test_content[str(ID)])
-                # analysed_words = AnalyseWords.analysing_words(test_content[str(ID)])
-                # print(dict[test_ID])
+                # print(test_content[str(ID)][4])
+                # analysed_words = AnalyseWords.analysing_words(test_content[test_ID][4])
+                print(dict[test_ID])
                 analysed_words = AnalyseWords.analysing_words(dict[test_ID])
                 # print(analysed_words)
                 state = 40

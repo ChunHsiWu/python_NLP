@@ -53,6 +53,7 @@ def analysing_words(words=[]):
             elif state == 12:
                 print('load algorithm')
                 classifier_load = 'Combination_Classifier'
+
                 classifier_dict = Classifier.train_classifier(classifier_load, load_mode)  # load mode
                 state = 14
 
@@ -78,16 +79,10 @@ def analysing_words(words=[]):
                               (nltk.classify.accuracy(v, testing_set)) * 100)
                 else:
                     testing_set = feats
+                    print('testing_set =', testing_set)
                     for k, v in classifier_dict.items():
                         print("classifier",k , "Classification:", v.classify(testing_set))
                         print("with confidence", v.confidence(testing_set) * 100)
-                    # featuresets = FileInteraction.import_pickle(training_features_path)
-                    # testing_set = featuresets[12000:]
-                    # for k, v in classifier_dict.items():
-                    #     print("classifier '", k, "' accuracy percent:",
-                    #           (nltk.classify.accuracy(v, testing_set)) * 100)
-
-
 
                 state = 19
 

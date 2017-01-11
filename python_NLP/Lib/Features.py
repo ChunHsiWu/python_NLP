@@ -99,9 +99,11 @@ def word_features(frequency):   # return documents & word_features
             # return
             elif state == 21:
                 print("Features step: ", state)
+                print('all_words lenth', len(all_words))
                 # all_words = nltk.FreqDist(all_words)  # list all_words in order
                 all_words = FreqDist(all_words)  # list all_words in order
                 print(all_words.most_common(50))
+                print('FreqDist all words lenth', len(all_words))
                 word_features = list(all_words.keys())[:frequency]  # acquire the most frequently used words
                 dict['word_features'] = word_features
                 state = 999
@@ -118,21 +120,8 @@ def main():
     document_path = current_path + "/Doc/Movie_review_doc.pickle"
     training_features_path = current_path + "/Doc/Training_Features.pickle"
     word_features_path = current_path + "/Doc/Word_Features.pickle"
-    Doc_dict['document'] = FileInteraction.import_pickle(document_path)
-    Doc_dict['word_features'] = FileInteraction.import_pickle(word_features_path)
-    training_set = featuresets[:12000]
-    testing_set = featuresets[12000:]
-    # input_classifier =
-    # classifer_path = current_path + '/Doc/' + input_classifier + '.pickle'
-    # trained_classifer = FileInteraction.import_pickle(classifer_path)
-    input_classifier = 'Naivebayes'
-    NBclassifier = nltk.NaiveBayesClassifier
+    Doc_dict = word_features(10000)
 
-    trained_classifer = NBclassifier.train(training_set)
-    print("classifier '", input_classifier, "' accuracy percent:",
-          (nltk.classify.accuracy(trained_classifer, testing_set)) * 100)
-    classifer_path = current_path + '/Doc/' + input_classifier + '_new.pickle'
-    FileInteraction.export_pickle(classifer_path, trained_classifer)
 
 
 def test():
