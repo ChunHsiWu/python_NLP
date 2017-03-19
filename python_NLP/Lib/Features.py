@@ -27,16 +27,23 @@ def word_features(frequency):   # return documents & word_features
                 documents = []
                 all_words = []  # all the words from input words
                 dict = {}
+                preprocessing = 1   # 0: no preprocessing
                 state = 10
             # load document and all words from NLTK movie review
             elif state == 10:
                 print("Features step: ", state)
-                # documents = [(list(movie_reviews.words(fileID)), category)
-                #              for category in movie_reviews.categories()
-                #              for fileID in movie_reviews.fileids(category)]
-                documents = [(list(ExtractWords.extract_useful_words(' '.join(movie_reviews.words(fileID)))), category)
+                if(preprocessing):
+                    print("using preprocessing dataset 1")
+                    documents = [
+                        (list(ExtractWords.extract_useful_words(' '.join(movie_reviews.words(fileID)))), category)
+                        for category in movie_reviews.categories()
+                        for fileID in movie_reviews.fileids(category)]
+                else:
+                    print("using raw dataset 1")
+                    documents = [(list(movie_reviews.words(fileID)), category)
                              for category in movie_reviews.categories()
                              for fileID in movie_reviews.fileids(category)]
+
                 for x in documents:
                     for y in x[0]:
                         all_words.append(y)
@@ -48,6 +55,7 @@ def word_features(frequency):   # return documents & word_features
             # load document and all words from https://pythonprogramming.net/static/downloads/short_reviews/
             elif state == 11:
                 print("Features step: ", state)
+                print("current path: ", current_path)
                 pos_doc_path = current_path + "/Doc/positive.csv"
                 neg_doc_path = current_path + "/Doc//negative.csv"
                 pos_doc = FileInteraction.import_file(pos_doc_path)
@@ -57,21 +65,24 @@ def word_features(frequency):   # return documents & word_features
 
                 for r in neg_doc.split('\n'):
                     documents.append((word_tokenize(r), "neg"))
-
-                # for w in word_tokenize(pos_doc):
-                #     all_words.append(w.lower())
-                # for w in word_tokenize(neg_doc):
-                #     all_words.append(w.lower())
+                if (preprocessing):
+                    print("using preprocessing dataset 2")
+                    for w in ExtractWords.extract_useful_words(pos_doc):
+                        all_words.append(w)
+                    for w in ExtractWords.extract_useful_words(neg_doc):
+                        all_words.append(w)
+                else:
+                    print("using raw dataset 2")
+                    for w in word_tokenize(pos_doc):
+                        all_words.append(w.lower())
+                    for w in word_tokenize(neg_doc):
+                        all_words.append(w.lower())
 
                 # for w in pos_doc.split('\n'):
                 #     all_words.append(ExtractWords.extract_useful_words(w))
                 # for w in neg_doc.split('\n'):
                 #     all_words.append(ExtractWords.extract_useful_words(w))
-                for w in ExtractWords.extract_useful_words(pos_doc):
-                    all_words.append(w)
-                for w in ExtractWords.extract_useful_words(neg_doc):
-                    all_words.append(w)
-                print(all_words)
+
                 state = 12
             # load document and all words from https://github.com/jeffreybreen/twitter-sentiment-analysis-tutorial-201107/tree/master/data/opinion-lexicon-English
             elif state == 12:
@@ -99,11 +110,10 @@ def word_features(frequency):   # return documents & word_features
             # return
             elif state == 21:
                 print("Features step: ", state)
-                print('all_words lenth', len(all_words))
+
                 # all_words = nltk.FreqDist(all_words)  # list all_words in order
                 all_words = FreqDist(all_words)  # list all_words in order
-                print(all_words.most_common(50))
-                print('FreqDist all words lenth', len(all_words))
+                print('all_words lenth', len(all_words))
                 word_features = list(all_words.keys())[:frequency]  # acquire the most frequently used words
                 dict['word_features'] = word_features
                 state = 999

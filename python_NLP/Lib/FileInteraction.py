@@ -1,7 +1,7 @@
 ### Import models
 import xlrd
 import pickle
-
+import os
 
 ### define functions
 
@@ -53,7 +53,8 @@ def main():
     dict = open_file(data_path)
     print(dict['5993'][4])
 
+current_path = os.getcwd()
 if __name__ == "__main__":
     main()
 else:
-    print('using ImportFile module')
+    print('using ImportFile module at ', current_path)

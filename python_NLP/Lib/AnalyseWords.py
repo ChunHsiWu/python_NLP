@@ -8,7 +8,6 @@ from Lib.Classifier import VoteClassifier
 #from nltk.corpus import movie_reviews
 import os
 from sklearn import metrics
-
 ### define functions
 
 
@@ -20,7 +19,7 @@ from sklearn import metrics
 #         features[w] = (w in words)
 #     return features
 
-def analysing_words(words=[]):
+def analysing_words(words=[], load_mode=1):
     state = 0
     while True:
         try:
@@ -31,7 +30,7 @@ def analysing_words(words=[]):
                 document_path = current_path + "/Doc/Movie_review_doc.pickle"
                 training_features_path = current_path + "/Doc/Training_Features.pickle"
                 classifier_dict = {}
-                load_mode = 1  # 1 = loading
+                #load_mode = 1  # 1 = loading
                 state = 10
 
             # allocate states
@@ -45,8 +44,9 @@ def analysing_words(words=[]):
             elif state == 11:
 
                 print('train algorithm')
-                classifier_input = ['Naivebayes', 'MultinomialNB', 'BernoulliNB', 'LogisticRegression', 'SGDClassifier',
-                                    'SVC', 'LinearSVC', 'NuSVC', 'Combination_Classifier']
+                #classifier_input = ['Naivebayes', 'MultinomialNB', 'BernoulliNB', 'LogisticRegression', 'SGDClassifier',
+                #                    'SVC', 'LinearSVC', 'NuSVC', 'Combination_Classifier']
+                classifier_input = ['Naivebayes', 'LogisticRegression', 'LinearSVC']
                 classifier_dict = Classifier.train_classifier(classifier_input, load_mode) # save mode
                 state = 14
             # load classifiers
@@ -101,7 +101,14 @@ def analysing_words(words=[]):
 
 
 def main():
-    pass
+    # training classifier here
+    user_input = input("Are you going to start training classifier (Y/N)?")
+    if (user_input == 'Y') or (user_input == 'y'):
+        analysing_words('',0)
+    elif (user_input == 'N') or (user_input == 'n'):
+        load_mode = 1
+    else:
+        print('Error input')
 
 def initial():
     pass
@@ -109,9 +116,9 @@ def initial():
 current_path = os.getcwd()
 if __name__ == "__main__":
     current_path = os.path.abspath(os.path.join(current_path, os.pardir))
-    print(current_path)
+    print('using AnalyseWords module at ', current_path)
     main()
 else:
     initial()
-    print('using AnalyseWords module')
+    print('using AnalyseWords module at ', current_path)
 

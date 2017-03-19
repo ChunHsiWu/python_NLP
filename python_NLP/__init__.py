@@ -2,7 +2,6 @@
 from Lib import FileInteraction
 from Lib import ExtractWords
 from Lib import AnalyseWords
-
 #from Lib.Classifier import VoteClassifier  <- keep observe
 
 ### define functions
@@ -34,27 +33,44 @@ def main():
                 data_path = "../export.xls"
                 pickle_path = "../filtered_export.pickle"
                 test_ID = '2'
-                state = 13
+                state = 1
+            elif state == 1:    # user input
+                user_input = input("Import pre-processing dataset(Y/N)?")
+                if (user_input=='Y') or (user_input == 'y'):
+                    state = 13
+                elif (user_input=='N') or (user_input == 'n'):
+                    state = 10
+                else:
+                    print('Error input')
+                    state = 1
 
             elif state == 10:    # import datasets
                 file_content = FileInteraction.open_file(data_path)  # file path, length
-                print("successfully import dataset")
+                print("successfully import raw dataset")
                 state = 11
 
             elif state == 11:
                 for _ in file_content:
+                    # analyse data from description part
                     dict[str(ID)] = ExtractWords.extract_useful_words(file_content[str(ID)][4])
                     ID += 1
                 state = 12
             elif state == 12:   # export refined dataset
                 FileInteraction.export_pickle(pickle_path, dict)
-                state = 39
+                user_input = input("Start doing sentiment analysis (Y/N)?")
+                if (user_input=='Y') or (user_input == 'y'):
+                    state = 13
+                elif (user_input=='N') or (user_input == 'n'):
+                    state = 19
+                else:
+                    print('Error input, end of program')
+                    state = 19
 
             elif state == 13:   # import pickled dataset
                 dict = FileInteraction.import_pickle(pickle_path)
                 state = 30
 
-            elif state == 30:     # analysing dataset
+            elif state == 30:     # sentiment analysis
                 # for i in range(len(dict)):
                 #     input_words += dict[str(i)]
                 # analysed_words = AnalyseWords.analysing_words(set(input_words))
@@ -64,7 +80,8 @@ def main():
                 # print(test_content[str(ID)][4])
                 # analysed_words = AnalyseWords.analysing_words(test_content[test_ID][4])
                 print(dict[test_ID])
-                analysed_words = AnalyseWords.analysing_words(dict[test_ID])
+                for i in range(11):
+                    analysed_words = AnalyseWords.analysing_words(dict[test_ID],0)
                 # print(analysed_words)
                 state = 40
 
@@ -82,7 +99,7 @@ def main():
             print("Error occurred")
             break
 
-
+global current_path
 if __name__ == "__main__":
     main()
 else:

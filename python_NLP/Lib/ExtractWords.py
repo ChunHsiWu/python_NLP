@@ -198,11 +198,14 @@ def extract_useful_words(words):
                 state = 61
 
             # correct spelling
+            # currently not in the pipeline cuz it takes too much time
             elif state == 50:
                 processd_words = spellingcorrector(input_words)
                 input_words = processd_words
                 state = 61
             # stemming words
+            # currently not in the pipeline cuz it's inappropriate
+            # we can try but not sure!!
             elif state == 60:
                 processd_words = stemming_words(input_words)
                 input_words = processd_words
@@ -223,8 +226,7 @@ def extract_useful_words(words):
                 input_words = processd_words
                 state = 79
 
-
-
+            # currently we dont use chunking cuz it takes time
             # # chunking algorithm
             # elif state == 90:
             #     analysed_words = chunking_words(words)  # chunk same POS together
@@ -251,13 +253,13 @@ def main():
 
 
 def initial():
-    # stop_words.remove("but")  # "but" should be still important
-    pass
+    stop_words.remove("but")  # "but" should be still important
+    # pass
 if __name__ == "__main__":
     current_path = os.path.abspath(os.path.join(current_path, os.pardir))
     print(current_path)
     main()
 else:
     initial()
-    print('using ExtractWords module')
+    print('using ExtractWords module at ', current_path)
 

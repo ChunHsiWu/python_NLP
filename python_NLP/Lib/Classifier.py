@@ -76,11 +76,9 @@ def train_classifier(input, load_mode = 1):
 
             # create training documents
             elif state == 10:
-                print("Classifier step: ", state)
-                Doc_dict = Features.word_features(10000)
+                #print("Classifier step: ", state)
+                Doc_dict = Features.word_features(5000)
                 featuresets = [(Features.find_features(rev, Doc_dict['word_features']), cate) for (rev, cate) in Doc_dict['document']]
-                print(len(featuresets))
-                print(featuresets[1])
                 # import random
                 # # documents of all movie_reviews [(list of words, category)]
                 # documents = [(list(movie_reviews.words(fileID)), category)
@@ -97,7 +95,9 @@ def train_classifier(input, load_mode = 1):
             # save document & featuresets
             elif state == 11:
                 print("Classifier step: ", state)
+                print("input path =", document_path)
                 FileInteraction.export_pickle(document_path, Doc_dict['document'])
+                print("successfully export pikle from path ")
                 FileInteraction.export_pickle(word_features_path, Doc_dict['word_features'])
                 FileInteraction.export_pickle(training_features_path, featuresets)
 
@@ -115,6 +115,7 @@ def train_classifier(input, load_mode = 1):
             elif state == 20:
                 print("Classifier step: ", state)
                 if load_mode ==0:   # saving
+                    print("len of features = ", len(featuresets))
                     training_set = featuresets[:12000]
                     testing_set = featuresets[12000:]
                     state = 21
@@ -123,6 +124,7 @@ def train_classifier(input, load_mode = 1):
 
                 if isinstance(input, list):
                     input_classifier = input[list_index]
+                    print("Classifier = ", input_classifier)
                 else:
                     input_classifier = input
                 if input_classifier == 'Naivebayes':
@@ -159,16 +161,13 @@ def train_classifier(input, load_mode = 1):
                         SGDClassifier_classifer = FileInteraction.import_pickle(SGDClassifier_classifer_path)
                         LinearSVC_classifer = FileInteraction.import_pickle(LinearSVC_classifer_path)
                         NuSVC_classifer = FileInteraction.import_pickle(NuSVC_classifer_path)
-                        classifier = VoteClassifier(Naivebayes_classifer,
-                                                          BernoulliNB_classifer,
-                                                          MultinomialNB_classifer,
-                                                          LogisticRegression_classifer,
-                                                          SGDClassifier_classifer,
-                                                          LinearSVC_classifer,
-                                                          NuSVC_classifer)
+
+
+                        classifier = VoteClassifier(Naivebayes_classifer, BernoulliNB_classifer, MultinomialNB_classifer,
+                        LogisticRegression_classifer, SGDClassifier_classifer, LinearSVC_classifer, NuSVC_classifer)
                         trained_classifer = classifier
-                        print("classifier '", input_classifier, "' accuracy percent:",
-                              (nltk.classify.accuracy(trained_classifer, testing_set)) * 100)
+                        #print("classifier '", input_classifier, "' accuracy percent:",
+                        #      (nltk.classify.accuracy(trained_classifer, testing_set)) * 100)
 
                 else:
                     print(input_classifier, "is not a valid classifer in ClassifierTraining")
@@ -177,11 +176,9 @@ def train_classifier(input, load_mode = 1):
             # training classifier
             elif state == 21:
                 print("Classifier step: ", state)
-                print(len(training_set))
-                print(training_set[1])
                 trained_classifer = classifier.train(training_set)
-                print("classifier '", input_classifier , "' accuracy percent:",
-                      (nltk.classify.accuracy(trained_classifer, testing_set)) * 100)
+                #print("classifier '", input_classifier , "' accuracy percent:",
+                #      (nltk.classify.accuracy(trained_classifer, testing_set)) * 100)
                 state = 22
             # pickling trained classifier
             elif state == 22:
@@ -234,7 +231,7 @@ def main():
 current_path = os.getcwd()
 if __name__ == "__main__":
     current_path = os.path.abspath(os.path.join(current_path, os.pardir))
-    print(current_path)
+    print('using Classifier module at ', current_path)
     main()
 else:
-    print('using Classifier module')
+    print('using Classifier module at ', current_path)

@@ -1,5 +1,7 @@
 from Lib import FileInteraction
 from Lib import ExtractWords
+from nltk.sentiment import SentimentIntensityAnalyzer
+
 import os
 current_path = os.getcwd()
 
@@ -9,6 +11,7 @@ def check_reliable_dataset(dataset={}):
         try:
             if state == 0:  # initial state
                 print('step', state)
+                sid = SentimentIntensityAnalyzer()
                 dict={}
                 words_array=[]
                 all_words=[]
@@ -24,6 +27,8 @@ def check_reliable_dataset(dataset={}):
                             words_array = ExtractWords.extract_useful_words(v[4])
                             useful_words = ' '.join(words_array)
                             print('ID: ', k, 'has useful words:', useful_words)
+                            print(v[3], 'polarity: pos')
+                            print(sid.polarity_scores(v[3].lower()))
                             dict[k] = (useful_words, 'pos') # extract useful commend
                             for w in words_array:
                                 all_words.append(w)
@@ -36,6 +41,8 @@ def check_reliable_dataset(dataset={}):
                             words_array = ExtractWords.extract_useful_words(v[4])
                             useful_words = ' '.join(words_array)
                             print('ID: ', k, 'has useful words:', useful_words)
+                            print(v[3], 'polarity: neg')
+                            print(sid.polarity_scores(v[3].lower()))
                             dict[k] = (useful_words, 'neg') # extract useful commend
                             for w in words_array:
                                 all_words.append(w)
