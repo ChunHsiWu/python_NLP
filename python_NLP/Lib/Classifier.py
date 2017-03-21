@@ -77,8 +77,11 @@ def train_classifier(input, load_mode = 1):
             # create training documents
             elif state == 10:
                 #print("Classifier step: ", state)
-                Doc_dict = Features.word_features(5000)
+                Doc_dict = Features.word_features(10000)
+                time_for_features1 =os.times()[4]
                 featuresets = [(Features.find_features(rev, Doc_dict['word_features']), cate) for (rev, cate) in Doc_dict['document']]
+                time_for_features2 = os.times()[4]
+                print("create features for the training/testing dataset needs to take ", time_for_features2-time_for_features1, "seconds")
                 # import random
                 # # documents of all movie_reviews [(list of words, category)]
                 # documents = [(list(movie_reviews.words(fileID)), category)
@@ -101,6 +104,12 @@ def train_classifier(input, load_mode = 1):
                 FileInteraction.export_pickle(word_features_path, Doc_dict['word_features'])
                 FileInteraction.export_pickle(training_features_path, featuresets)
 
+                training_set = featuresets[:12000]
+                testing_set = featuresets[12000:]
+                # release the memory
+                Doc_dict = {}
+                featuresets = []
+
                 state = 20
 
             # load document
@@ -115,9 +124,6 @@ def train_classifier(input, load_mode = 1):
             elif state == 20:
                 print("Classifier step: ", state)
                 if load_mode ==0:   # saving
-                    print("len of features = ", len(featuresets))
-                    training_set = featuresets[:12000]
-                    testing_set = featuresets[12000:]
                     state = 21
                 else:
                     state = 23
@@ -176,7 +182,12 @@ def train_classifier(input, load_mode = 1):
             # training classifier
             elif state == 21:
                 print("Classifier step: ", state)
+                time_for_training_classifier1= os.times()[4]
                 trained_classifer = classifier.train(training_set)
+                time_for_training_classifier2 = os.times()[4]
+                print("Training", input_classifier,  "needs to take ",
+                      time_for_training_classifier2 - time_for_training_classifier1, "seconds")
+
                 #print("classifier '", input_classifier , "' accuracy percent:",
                 #      (nltk.classify.accuracy(trained_classifer, testing_set)) * 100)
                 state = 22

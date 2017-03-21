@@ -38,15 +38,24 @@ def word_features(frequency):   # return documents & word_features
                         (list(ExtractWords.extract_useful_words(' '.join(movie_reviews.words(fileID)))), category)
                         for category in movie_reviews.categories()
                         for fileID in movie_reviews.fileids(category)]
+                    for x in documents:
+                        for y in x[0]:
+                            all_words.append(y)
+
+                    # use original Doc to training
+                    documents=[]
+                    documents = [(list(movie_reviews.words(fileID)), category)
+                                 for category in movie_reviews.categories()
+                                 for fileID in movie_reviews.fileids(category)]
                 else:
                     print("using raw dataset 1")
                     documents = [(list(movie_reviews.words(fileID)), category)
                              for category in movie_reviews.categories()
                              for fileID in movie_reviews.fileids(category)]
 
-                for x in documents:
-                    for y in x[0]:
-                        all_words.append(y)
+                    for x in documents:
+                        for y in x[0]:
+                            all_words.append(y)
                 # # documents[:1000]  # neg
                 # # documents[1000:]  # pos
                 # for w in movie_reviews.words():
@@ -60,11 +69,12 @@ def word_features(frequency):   # return documents & word_features
                 neg_doc_path = current_path + "/Doc//negative.csv"
                 pos_doc = FileInteraction.import_file(pos_doc_path)
                 neg_doc = FileInteraction.import_file(neg_doc_path)
+
                 for r in pos_doc.split('\n'):
                     documents.append((word_tokenize(r), "pos"))
-
                 for r in neg_doc.split('\n'):
                     documents.append((word_tokenize(r), "neg"))
+
                 if (preprocessing):
                     print("using preprocessing dataset 2")
                     for w in ExtractWords.extract_useful_words(pos_doc):
@@ -113,6 +123,8 @@ def word_features(frequency):   # return documents & word_features
 
                 # all_words = nltk.FreqDist(all_words)  # list all_words in order
                 all_words = FreqDist(all_words)  # list all_words in order
+                print("The most frequent 50 words in the features: ")
+                print(all_words.most_common(50))
                 print('all_words lenth', len(all_words))
                 word_features = list(all_words.keys())[:frequency]  # acquire the most frequently used words
                 dict['word_features'] = word_features
