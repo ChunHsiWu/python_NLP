@@ -81,7 +81,7 @@ def main():
                 # analysed_words = AnalyseWords.analysing_words(test_content[test_ID][4])
                 print(dict[test_ID])
 
-                analysed_words = AnalyseWords.analysing_words(dict[test_ID],0)
+                analysed_words = AnalyseWords.analysing_words(dict[test_ID],1)
                 # print(analysed_words)
                 state = 40
 

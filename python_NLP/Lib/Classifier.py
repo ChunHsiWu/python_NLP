@@ -169,8 +169,9 @@ def train_classifier(input, load_mode = 1):
                         NuSVC_classifer = FileInteraction.import_pickle(NuSVC_classifer_path)
 
 
-                        classifier = VoteClassifier(Naivebayes_classifer, BernoulliNB_classifer, MultinomialNB_classifer,
-                        LogisticRegression_classifer, SGDClassifier_classifer, LinearSVC_classifer, NuSVC_classifer)
+                        #classifier = VoteClassifier(Naivebayes_classifer, BernoulliNB_classifer, MultinomialNB_classifer,
+                        #LogisticRegression_classifer, SGDClassifier_classifer, LinearSVC_classifer, NuSVC_classifer)
+                        classifier = VoteClassifier(Naivebayes_classifer, LogisticRegression_classifer, LinearSVC_classifer)
                         trained_classifer = classifier
                         #print("classifier '", input_classifier, "' accuracy percent:",
                         #      (nltk.classify.accuracy(trained_classifer, testing_set)) * 100)
