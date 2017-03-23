@@ -65,6 +65,7 @@ def train_classifier(input, load_mode = 1):
                 SGDClassifier_classifer_path = current_path + "/Doc/SGDClassifier.pickle"
                 LinearSVC_classifer_path = current_path + "/Doc/LinearSVC.pickle"
                 NuSVC_classifer_path = current_path + "/Doc/NuSVC.pickle"
+
                 Doc_dict = {}
                 all_words = []  # all the words from input words
                 featuresets =[]

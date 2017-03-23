@@ -2,6 +2,7 @@
 from Lib import FileInteraction
 from Lib import ExtractWords
 from Lib import AnalyseWords
+from nltk.tokenize import word_tokenize
 #from Lib.Classifier import VoteClassifier  <- keep observe
 
 ### define functions
@@ -32,10 +33,10 @@ def main():
                 ID = 0
                 data_path = "../export.xls"
                 pickle_path = "../filtered_export.pickle"
-                test_ID = '2'
+                test_ID = '0'
                 state = 1
             elif state == 1:    # user input
-                user_input = input("Import pre-processing dataset(Y/N)?")
+                user_input = input("Import dataset(Y/N)?")
                 if (user_input=='Y') or (user_input == 'y'):
                     state = 13
                 elif (user_input=='N') or (user_input == 'n'):
@@ -51,8 +52,9 @@ def main():
 
             elif state == 11:
                 for _ in file_content:
-                    # analyse data from description part
-                    dict[str(ID)] = ExtractWords.extract_useful_words(file_content[str(ID)][4])
+                    # extract data from description part
+                    #dict[str(ID)] = ExtractWords.extract_useful_words(file_content[str(ID)][4])
+                    dict[str(ID)] = word_tokenize(file_content[str(ID)][4])
                     ID += 1
                 state = 12
             elif state == 12:   # export refined dataset
@@ -77,11 +79,11 @@ def main():
 
 
                 # test_content = FileInteraction.open_file(data_path)  # file path, length
-                # print(test_content[str(ID)][4])
+                # print(test_content[str(ID)][4])Combination_Classifier
                 # analysed_words = AnalyseWords.analysing_words(test_content[test_ID][4])
                 print(dict[test_ID])
 
-                analysed_words = AnalyseWords.analysing_words(dict[test_ID],1)
+                analysed_words = AnalyseWords.analysing_words(dict[test_ID],0)
                 # print(analysed_words)
                 state = 40
 
