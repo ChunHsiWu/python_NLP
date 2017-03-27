@@ -63,6 +63,13 @@ def check_reliable_dataset(dataset={}):
                 dict['document'] = documents
                 all_words = FreqDist(all_words)  # list all_words in order
                 dict['word_features'] = all_words
+
+                test_freq = all_words.most_common(10)
+                print(test_freq)
+                for i in test_freq:
+                    print('key = ', i[0])
+                    print('value = ', i[1])
+
                 #for k, v in dict.items():
                 #    print('ID', k, 'has', v[1], 'meaning')
                 state = 21

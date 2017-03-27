@@ -56,6 +56,7 @@ def word_features(frequency):   # return documents & word_features
                     for x in documents:
                         for y in x[0]:
                             all_words.append(y)
+
                 # # documents[:1000]  # neg
                 # # documents[1000:]  # pos
                 # for w in movie_reviews.words():
@@ -125,8 +126,13 @@ def word_features(frequency):   # return documents & word_features
                 all_words = FreqDist(all_words)  # list all_words in order
                 print("The most frequent 50 words in the features: ")
                 print(all_words.most_common(50))
+                print(list(all_words.keys())[:50])
                 print('all_words lenth', len(all_words))
-                word_features = list(all_words.keys())[:frequency]  # acquire the most frequently used words
+                #===== test most freq =======
+                most_freq = [i[0] for i in all_words.most_common()]
+                word_features = most_freq[:frequency]
+                #===========================
+                #word_features = list(all_words.keys())[:frequency]  # acquire the most frequently used words
                 dict['word_features'] = word_features
                 state = 999
             else:

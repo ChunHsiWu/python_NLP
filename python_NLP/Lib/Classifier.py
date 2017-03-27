@@ -78,7 +78,7 @@ def train_classifier(input, load_mode = 1):
             # create training documents
             elif state == 10:
                 #print("Classifier step: ", state)
-                Doc_dict = Features.word_features(10000)
+                Doc_dict = Features.word_features(5000)
                 time_for_features1 =os.times()[4]
                 featuresets = [(Features.find_features(rev, Doc_dict['word_features']), cate) for (rev, cate) in Doc_dict['document']]
                 time_for_features2 = os.times()[4]
@@ -104,9 +104,9 @@ def train_classifier(input, load_mode = 1):
                 print("successfully export pikle from path ")
                 FileInteraction.export_pickle(word_features_path, Doc_dict['word_features'])
                 FileInteraction.export_pickle(training_features_path, featuresets)
-
-                training_set = featuresets[:12000]
-                testing_set = featuresets[12000:]
+                training_set_length = int(len(featuresets)*2/3)
+                training_set = featuresets[:training_set_length]
+                testing_set = featuresets[training_set_length:]
                 # release the memory
                 Doc_dict = {}
                 featuresets = []
