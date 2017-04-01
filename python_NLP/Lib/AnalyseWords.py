@@ -44,9 +44,9 @@ def analysing_words(words=[], load_mode=1):
             elif state == 11:
 
                 print('train algorithm')
-                #classifier_input = ['Naivebayes', 'MultinomialNB', 'BernoulliNB', 'LogisticRegression', 'SGDClassifier',
-                #                    'SVC', 'LinearSVC', 'NuSVC', 'Combination_Classifier']
-                classifier_input = ['Naivebayes', 'LogisticRegression', 'LinearSVC', 'Combination_Classifier']
+                classifier_input = ['Naivebayes', 'MultinomialNB', 'BernoulliNB', 'LogisticRegression', 'SGDClassifier',
+                                    'SVC', 'LinearSVC', 'NuSVC', 'Combination_Classifier']
+                #classifier_input = ['Naivebayes', 'MultinomialNB', 'LogisticRegression', 'LinearSVC', 'Combination_Classifier']
                 classifier_dict = Classifier.train_classifier(classifier_input, load_mode) # save mode
                 state = 14
             # load classifiers
