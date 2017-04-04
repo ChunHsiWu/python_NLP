@@ -73,7 +73,8 @@ def analysing_words(words=[], load_mode=1):
             # test algorithm accuracy
             elif state == 15:
                 if load_mode == 0:
-                    testing_set = featuresets[12000:]
+                    training_set_length = int(len(featuresets) * 2 / 3)
+                    testing_set = featuresets[training_set_length:]
                     for k, v in classifier_dict.items():
                         print("classifier '", k, "' accuracy percent:",
                               (nltk.classify.accuracy(v, testing_set)) * 100)

@@ -4,13 +4,15 @@ from nltk.sentiment import SentimentIntensityAnalyzer
 from nltk.probability import FreqDist
 from nltk.tokenize import word_tokenize
 from nltk.classify import accuracy
+from Lib import AnalyseWords
+
 import xlrd
 from Lib import Classifier
 from Lib import Features
 import os
 current_path = os.getcwd()
 
-def check_reliable_dataset(dataset={}):
+def check_reliable_dataset(dataset={}, Doc_dict={}):
     state = 0
     while True:
         try:
@@ -22,45 +24,46 @@ def check_reliable_dataset(dataset={}):
                 words_array=[]
                 all_words=[]
                 search_frequent_productID = True
-                state = 1
-            # test for find specific
-            elif state == 1:
-                if(search_frequent_productID):
-                    state = 2
-                else:
-                    state = 10
-            elif state == 2:
-                productID_array=[]
-                productID_dict={}
-                for k, v in dataset.items():
-                    if v[0] not in productID_array:
-                        productID_array.append(v[0])
-                        productID_dict[v[0]]=0
+                #classifer_path = current_path + '/Doc/' + 'Combination_Classifier' + '.pickle'
+                #classifer = FileInteraction.import_pickle(classifer_path)
+
+
+
+                state = 10
+                '''
+                # test for find specific
+                elif state == 1:
+                    if(search_frequent_productID):
+                        state = 2
                     else:
-                        productID_dict[v[0]] += 1
-                #for i in productID_array:
-                #    print("prodict ID ", i, "has elements =", productID_dict[i])
-                maximum = max(productID_dict, key=productID_dict.get)  # Just use 'min' instead of 'max' for minimum.
-                print(maximum, productID_dict[maximum])
-                top5 = sorted(productID_dict, key=productID_dict.get, reverse=True)[:5]
-                for i in top5:
-                    print(i, "has element ", productID_dict[i])
-                state=3
-            # modify datasets by specific product ID
-            elif state==3:
-                new_dataset = {}
-                for k,v in dataset.items():
-                    if v[0] == maximum:
-                        new_dataset[k] = v
-                dataset = new_dataset
-                print("only use productID:", maximum)
-                state=10
-
-
-
-
-
-
+                        state = 10
+                elif state == 2:
+                    productID_array=[]
+                    productID_dict={}
+                    for k, v in dataset.items():
+                        if v[0] not in productID_array:
+                            productID_array.append(v[0])
+                            productID_dict[v[0]]=0
+                        else:
+                            productID_dict[v[0]] += 1
+                    #for i in productID_array:
+                    #    print("prodict ID ", i, "has elements =", productID_dict[i])
+                    maximum = max(productID_dict, key=productID_dict.get)  # Just use 'min' instead of 'max' for minimum.
+                    print(maximum, productID_dict[maximum])
+                    top5 = sorted(productID_dict, key=productID_dict.get, reverse=True)[:5]
+                    for i in top5:
+                        print(i, "has element ", productID_dict[i])
+                    state=3
+                # modify datasets by specific product ID
+                elif state==3:
+                    new_dataset = {}
+                    for k,v in dataset.items():
+                        if v[0] == maximum:
+                            new_dataset[k] = v
+                    dataset = new_dataset
+                    print("only use productID:", maximum)
+                    state=10
+                '''
 
             # haven't add weight of summary (polarity check)
             elif state == 10:  # import datasets
@@ -69,8 +72,12 @@ def check_reliable_dataset(dataset={}):
                 for k,v in dataset.items():
                     if float(v[2]) == 5:  # users satisfy products
                         x, y = v[1].split("/")
-                        if float(x) > 3 and float(x)/float(y) > 0.8: # dataset is reliable
+                        #feats = getFeatures(v[4], Doc_dict)
+                        #if (float(x) >= 2 and float(x)/float(y) > 0.7 ) or (float(x) >= 2 and classifer.classify(feats)=='pos'): # dataset is reliable
+                        if (float(x) >= 2 and float(x) / float(y) > 0.7) or (float(x) >= 2 and sid.polarity_scores(v[3].lower())['pos'] > 0) :  # dataset is reliable
+
                             words_array = ExtractWords.extract_useful_words(v[4])
+
                             useful_words = ' '.join(words_array)
                             #print('ID: ', k, 'has useful words:', useful_words)
                             #print(v[3], 'polarity: pos')
@@ -84,8 +91,12 @@ def check_reliable_dataset(dataset={}):
 
                     elif float(v[2]) < 3: # users don't satisfy products
                         x, y = v[1].split("/")
-                        if float(x) > 3 and float(x)/float(y) > 0.8: # dataset is reliable
+                        #feats = getFeatures(v[4], Doc_dict)
+                        #if (float(x) >= 2 and float(x)/float(y) > 0.7) or(float(x) >= 2 and classifer.classify(feats)=='neg'): # dataset is reliable
+                        if (float(x) >= 2 and float(x) / float(y) > 0.7) or (float(x) >= 2 and sid.polarity_scores(v[3].lower())['neg'] > 0) :  # dataset is reliable
                             words_array = ExtractWords.extract_useful_words(v[4])
+
+
                             useful_words = ' '.join(words_array)
                             #print('ID: ', k, 'has useful words:', useful_words)
                             #print(v[3], 'polarity: neg')
@@ -127,22 +138,16 @@ def check_reliable_dataset(dataset={}):
         except:
             print("Error occurred at extract useful dataset")
             break
+def getFeatures(words, Doc_dict={}):
+    feats = Features.find_features(words, Doc_dict['word_features'])
+    return feats
 
-
-def check_accuracy(dict={}):
+def check_accuracy(dict={}, classifier_input=[]):
     classifier_dict = {}
-    classifier_input = ['Naivebayes', 'LogisticRegression', 'LinearSVC', 'Combination_Classifier']
     for classifier in classifier_input:
         classifer_path = current_path + '/Doc/' + classifier + '.pickle'
         trained_classifer = FileInteraction.import_pickle(classifer_path)
         classifier_dict[classifier] = trained_classifer
-    '''
-    classifier_load = 'LogisticRegression'
-    #classifier_load = 'LogisticRegression'
-    classifer_path = current_path + '/Doc/' + classifier_load + '.pickle'
-    trained_classifer = FileInteraction.import_pickle(classifer_path)
-    print('success import pickle')
-    '''
     testing_set = [(Features.find_features(rev, dict['word_features']), cate) for (rev, cate) in
                    dict['document']]
     for k, v in classifier_dict.items():
@@ -169,12 +174,18 @@ def test(file_path):
     testing_set = []
     classifier_dict = {}
     data_path = file_path + "/2.xls"
-    print(data_path)
-
+    classifier_input = ['Naivebayes', 'MultinomialNB', 'BernoulliNB', 'LogisticRegression', 'SGDClassifier',
+                        'SVC', 'LinearSVC', 'NuSVC', 'Combination_Classifier']
     file_content = FileInteraction.open_file(data_path)  # file path, length
     print("successfully import dataset")
 
-    toplist = find_most_product(file_content, 5)
+    Doc_dict={}
+    document_path = current_path + "/Doc/Movie_review_doc.pickle"
+    word_features_path = current_path + "/Doc/Word_Features.pickle"
+    Doc_dict['document'] = FileInteraction.import_pickle(document_path)
+    Doc_dict['word_features'] = FileInteraction.import_pickle(word_features_path)
+
+    toplist = find_most_product(file_content, 10)
 
     for i in toplist:
         new_dataset = {}
@@ -183,37 +194,12 @@ def test(file_path):
                 new_dataset[k] = v
         dataset = new_dataset
 
-        dict = check_reliable_dataset(dataset)
+        dict = check_reliable_dataset(dataset, Doc_dict)
         print('length of useful datasent is ', len(dict['document']), 'sets')
-        print(dict['document'][0])
         print('number of all_words is ', len(dict['word_features']), 'words')
-        print('load algorithm')
         print("productID:", i)
-        check_accuracy(dict)
-    '''
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-        dict = check_reliable_dataset(file_content)
-        print('length of useful datasent is ', len(dict['document']), 'sets')
-        print(dict['document'][0])
-        print('number of all_words is ', len(dict['word_features']), 'words')
-        print('load algorithm')
-    
-        check_accuracy(dict)
-    
-    '''
+        check_accuracy(dict, classifier_input)
+
 
     training_features_path = current_path + "/Doc/Training_Features.pickle"
     #for (rev, cate) in dict['document']:

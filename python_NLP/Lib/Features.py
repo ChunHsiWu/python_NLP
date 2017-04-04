@@ -61,7 +61,7 @@ def word_features(frequency):   # return documents & word_features
                 # # documents[1000:]  # pos
                 # for w in movie_reviews.words():
                 #     all_words.append(w.lower())
-                state = 11
+                state = 20
             # load document and all words from https://pythonprogramming.net/static/downloads/short_reviews/
             elif state == 11:
                 print("Features step: ", state)
@@ -94,7 +94,7 @@ def word_features(frequency):   # return documents & word_features
                 # for w in neg_doc.split('\n'):
                 #     all_words.append(ExtractWords.extract_useful_words(w))
 
-                state = 12
+                state = 20
             # load document and all words from https://github.com/jeffreybreen/twitter-sentiment-analysis-tutorial-201107/tree/master/data/opinion-lexicon-English
             elif state == 12:
                 print("Features step: ", state)
