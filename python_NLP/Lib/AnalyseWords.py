@@ -7,6 +7,7 @@ from Lib import Features
 from Lib.Classifier import VoteClassifier
 #from nltk.corpus import movie_reviews
 import os
+import xlwt
 from sklearn import metrics
 ### define functions
 
@@ -19,7 +20,7 @@ from sklearn import metrics
 #         features[w] = (w in words)
 #     return features
 
-def analysing_words(words=[], load_mode=1):
+def analysing_words(words=[], load_mode=1, count=1):
     state = 0
     while True:
         try:
@@ -31,6 +32,21 @@ def analysing_words(words=[], load_mode=1):
                 training_features_path = current_path + "/Doc/Training_Features.pickle"
                 classifier_dict = {}
                 #load_mode = 1  # 1 = loading
+                # setup for saving csv
+                book = xlwt.Workbook(encoding="utf-8")
+                sheet1 = book.add_sheet("Sheet 1")
+                sheet1.write(0, 0, "Counts")
+                sheet1.write(1, 0, count)
+                sheet1.write(0, 1, "Naivebayes")
+                sheet1.write(0, 2, "MultinomialNB")
+                sheet1.write(0, 3, "BernoulliNB")
+                sheet1.write(0, 4, "LogisticRegression")
+                sheet1.write(0, 5, "SGDClassifier")
+                sheet1.write(0, 6, "SVC")
+                sheet1.write(0, 7, "LinearSVC")
+                sheet1.write(0, 8, "NuSVC")
+                sheet1.write(0, 9, "Combination_Classifier")
+
                 state = 10
 
             # allocate states
@@ -76,8 +92,26 @@ def analysing_words(words=[], load_mode=1):
                     training_set_length = int(len(featuresets) * 2 / 3)
                     testing_set = featuresets[training_set_length:]
                     for k, v in classifier_dict.items():
-                        print("classifier '", k, "' accuracy percent:",
-                              (nltk.classify.accuracy(v, testing_set)) * 100)
+                        acc = (nltk.classify.accuracy(v, testing_set)) * 100
+                        print("classifier '", k, "' accuracy percent:", acc)
+                        if k is "Naivebayes":
+                            sheet1.write(count, 1, acc)
+                        elif k is "MultinomialNB":
+                            sheet1.write(count, 2, acc)
+                        elif k is "BernoulliNB":
+                            sheet1.write(count, 3, acc)
+                        elif k is "LogisticRegression":
+                            sheet1.write(count, 4, acc)
+                        elif k is "SGDClassifier":
+                            sheet1.write(count, 5, acc)
+                        elif k is "SVC":
+                            sheet1.write(count, 6, acc)
+                        elif k is "LinearSVC":
+                            sheet1.write(count, 7, acc)
+                        elif k is "NuSVC":
+                            sheet1.write(count, 8, acc)
+                        else:
+                            sheet1.write(count, 9, acc)
                 else:
                     testing_set = feats
                     print('testing_set =', testing_set)
@@ -85,8 +119,11 @@ def analysing_words(words=[], load_mode=1):
                         print("classifier",k , "Classification:", v.classify(testing_set))
                         print("with confidence", v.confidence(testing_set) * 100)
 
+                state = 16
+            elif state == 16:
+                csv_path = current_path + '/Doc/exportCSV/Classifiers_Preprocess'+str(count)+'.csv'
+                book.save(csv_path)
                 state = 19
-
 
             else:  # End process
                 # print("Extracting useful words...")

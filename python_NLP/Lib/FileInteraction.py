@@ -26,7 +26,6 @@ def export_file(path, content):
     file_out.write(content)
     file_out.close()
 
-
 def open_file(file_location='../export.xls',length=-1):
     dict = {}
     workbook = xlrd.open_workbook(file_location)
