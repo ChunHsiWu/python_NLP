@@ -124,6 +124,11 @@ def word_features(frequency):   # return documents & word_features
 
                 # all_words = nltk.FreqDist(all_words)  # list all_words in order
                 all_words = FreqDist(all_words)  # list all_words in order
+
+                # pickle to data pool
+                data_pool_path = current_path + "/Doc/Datapool.pickle"
+                FileInteraction.export_pickle(data_pool_path, all_words)
+
                 print("The most frequent 50 words in the features: ")
                 print(all_words.most_common(50))
                 print(list(all_words.keys())[:50])

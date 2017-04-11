@@ -5,13 +5,18 @@ from nltk.probability import FreqDist
 from nltk.tokenize import word_tokenize
 from nltk.classify import accuracy
 from Lib import AnalyseWords
-
+import nltk
+from nltk.classify.scikitlearn import SklearnClassifier
+from sklearn.naive_bayes import MultinomialNB, BernoulliNB  # including GaussianNB, BaseDiscreteNB, MultinomialNB,BernoulliNB
+from sklearn.linear_model import LogisticRegression, SGDClassifier
+from sklearn.svm import SVC, LinearSVC, NuSVC
 import xlrd
 import xlwt
 from Lib import Classifier
 from Lib import Features
 import os
 current_path = os.getcwd()
+from Lib.Classifier import VoteClassifier
 
 # setup for saving csv
 book = xlwt.Workbook(encoding="utf-8")
@@ -115,7 +120,8 @@ def check_reliable_dataset(dataset={}, Doc_dict={}):
                 print('step', state)
                 dict['document'] = documents
                 all_words = FreqDist(all_words)  # list all_words in order
-                dict['word_features'] = all_words
+                dict['word_features'] = list(all_words.keys())
+                dict['data_pool'] = all_words
 
                 state = 21
 
@@ -127,11 +133,21 @@ def check_reliable_dataset(dataset={}, Doc_dict={}):
 
 
         except:
-            print("Error occurred at extract useful dataset")
+            print("Error occurred at extract useful dataset")
             break
-def getFeatures(words, Doc_dict={}):
-    feats = Features.find_features(words, Doc_dict['word_features'])
-    return feats
+
+
+def check_in_datapool(all_words={}, data_pool={}):
+    for k,v in all_words.items():
+        if k in data_pool.keys():
+            data_pool[k]+v
+        else:
+            data_pool[k]=v
+    return data_pool
+
+def training_classifier(dict={}, classifier_input=[]):
+    pass
+
 
 def check_accuracy(dict={}, classifier_input=[], count=0):
     classifier_dict = {}
@@ -184,6 +200,14 @@ def test(file_path):
     testing_set = []
     classifier_dict = {}
     count = 0
+    number_of_products=0
+
+    data_pool_path = current_path + "/Doc/Datapool.pickle"
+    data_pool = FileInteraction.import_pickle(data_pool_path)
+    #check_in_datapool(data_pool, data_pool)
+    #FileInteraction.export_pickle(data_pool_path, words)
+    #data_pool = FileInteraction.import_pickle(data_pool_path)
+
 
     sheet1.write(0, 0, "Product ID")
     sheet1.write(0, 1, "Naivebayes")
@@ -200,7 +224,7 @@ def test(file_path):
     sheet1.write(0, 12, "Number of words")
 
 
-    data_path = file_path + "/2.xls"
+    data_path = file_path + "/export.xls"
     classifier_input = ['Naivebayes', 'MultinomialNB', 'BernoulliNB', 'LogisticRegression', 'SGDClassifier',
                         'SVC', 'LinearSVC', 'NuSVC', 'Combination_Classifier']
     file_content = FileInteraction.open_file(data_path)  # file path, length
@@ -212,26 +236,29 @@ def test(file_path):
     Doc_dict['document'] = FileInteraction.import_pickle(document_path)
     Doc_dict['word_features'] = FileInteraction.import_pickle(word_features_path)
 
-    toplist = find_most_product(file_content, 10)
+    if(number_of_products > 0):
+        toplist = find_most_product(file_content, number_of_products)
 
-    for i in toplist:
-        new_dataset = {}
-        count += 1
-        for k, v in file_content.items():
-            if v[0] == i:
-                new_dataset[k] = v
-        dataset = new_dataset
-        print('length of datasent is ', len(dataset), 'sets')
-        sheet1.write(count, 10, len(dataset))
-        dict = check_reliable_dataset(dataset, Doc_dict)
-        print('length of useful datasent is ', len(dict['document']), 'sets')
-        sheet1.write(count, 11, len(dict['document']))
-        print('number of all_words is ', len(dict['word_features']), 'words')
-        sheet1.write(count, 12, len(dict['word_features']))
-        print("productID:", i)
-        sheet1.write(count, 0, i)
-        check_accuracy(dict, classifier_input, count)
+        for i in toplist:
+            new_dataset = {}
+            count += 1
+            for k, v in file_content.items():
+                if v[0] == i:
+                    new_dataset[k] = v
+            dataset = new_dataset
+            print('length of datasent is ', len(dataset), 'sets')
+            sheet1.write(count, 10, len(dataset))
+            dict = check_reliable_dataset(dataset, Doc_dict)
+            print('length of useful datasent is ', len(dict['document']), 'sets')
+            sheet1.write(count, 11, len(dict['document']))
+            print('number of all_words is ', len(dict['word_features']), 'words')
+            sheet1.write(count, 12, len(dict['word_features']))
+            print("productID:", i)
+            sheet1.write(count, 0, i)
+            check_accuracy(dict, classifier_input, count)
 
+    # testing Amazon review accuracy
+    print("testing Amazon review accuracy")
     data_path = file_path + "/export.xls"
     file_content = FileInteraction.open_file(data_path)  # file path, length
     count += 1
@@ -245,6 +272,79 @@ def test(file_path):
     print("productID: All data")
     sheet1.write(count, 0, "All data")
     check_accuracy(dict, classifier_input, count)
+
+    # training new classifier here
+    data_path = file_path + "/export.xls"
+    classifier_input = ['Naivebayes', 'LogisticRegression', 'LinearSVC', 'Combination_Classifier']
+    #classifier_input = ['Combination_Classifier']
+    Naivebayes_classifier_path = current_path + "/Doc/Naivebayes_retraining.pickle"
+    BernoulliNB_classifer_path = current_path + "/Doc/BernoulliNB_retraining.pickle"
+    MultinomialNB_classifer_path = current_path + "/Doc/MultinomialNB_retraining.pickle"
+    LogisticRegression_classifer_path = current_path + "/Doc/LogisticRegression_retraining.pickle"
+    SGDClassifier_classifer_path = current_path + "/Doc/SGDClassifier_retraining.pickle"
+    LinearSVC_classifer_path = current_path + "/Doc/LinearSVC_retraining.pickle"
+    NuSVC_classifer_path = current_path + "/Doc/NuSVC_retraining.pickle"
+    file_content = FileInteraction.open_file(data_path)  # file path, length
+    dict = check_reliable_dataset(file_content)
+
+    print("start testing re-traing")
+    data_pool_all_words = check_in_datapool(dict['data_pool'], data_pool)
+    most_freq = [i[0] for i in data_pool_all_words.most_common()]
+    word_features = most_freq[:2000]
+    print("get new 2000 words")
+    featuresets = [(Features.find_features(rev, word_features), cate) for (rev, cate) in
+                   dict['document']]
+    training_set_length = int(len(featuresets) * 2 / 3)
+    training_set = featuresets[:training_set_length]
+    testing_set = featuresets[training_set_length:]
+    print("get new training & testing sets")
+
+    for classifier_name in classifier_input:
+        print("straing re-training classifier: ", classifier_name)
+        if classifier_name == 'Naivebayes':
+            classifier = nltk.NaiveBayesClassifier
+
+        elif classifier_name == 'MultinomialNB':
+            classifier = SklearnClassifier(MultinomialNB())
+
+        elif classifier_name == 'BernoulliNB':
+            classifier = SklearnClassifier(BernoulliNB())
+
+        elif classifier_name == 'LogisticRegression':
+            classifier = SklearnClassifier(LogisticRegression())
+
+        elif classifier_name == 'SGDClassifier':
+            classifier = SklearnClassifier(SGDClassifier())
+
+        elif classifier_name == 'SVC':
+            classifier = SklearnClassifier(SVC())
+
+        elif classifier_name == 'LinearSVC':
+            classifier = SklearnClassifier(LinearSVC())
+
+        elif classifier_name == 'NuSVC':
+            classifier = SklearnClassifier(NuSVC())
+
+        elif classifier_name == 'Combination_Classifier':
+            Naivebayes_classifer = FileInteraction.import_pickle(Naivebayes_classifier_path)
+            #BernoulliNB_classifer = FileInteraction.import_pickle(BernoulliNB_classifer_path)
+            #MultinomialNB_classifer = FileInteraction.import_pickle(MultinomialNB_classifer_path)
+            LogisticRegression_classifer = FileInteraction.import_pickle(LogisticRegression_classifer_path)
+            #SGDClassifier_classifer = FileInteraction.import_pickle(SGDClassifier_classifer_path)
+            LinearSVC_classifer = FileInteraction.import_pickle(LinearSVC_classifer_path)
+            #NuSVC_classifer = FileInteraction.import_pickle(NuSVC_classifer_path)
+            classifier = VoteClassifier(Naivebayes_classifer, LogisticRegression_classifer, LinearSVC_classifer)
+            trained_classifer = classifier
+        if classifier_name != 'Combination_Classifier':
+            trained_classifer = classifier.train(training_set)
+        print("successful re-training classifier")
+        acc = (accuracy(trained_classifer, testing_set)) * 100
+        print("classifier '", classifier_name, "' accuracy percent:", acc)
+        classifer_path = current_path + '/Doc/' + classifier_name + '_retraining.pickle'
+        FileInteraction.export_pickle(classifer_path, trained_classifer)
+        print("success pickle classifier: ", classifier_name)
+
+
 
     csv_path = file_path + '/python_NLP/Doc/exportCSV/Amazon_Review.csv'
     book.save(csv_path)
