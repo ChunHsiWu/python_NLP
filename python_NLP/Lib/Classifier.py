@@ -55,6 +55,7 @@ def train_classifier(input, load_mode = 1):
             if state == 0:
                 print("Classifier step: ", state)
                 document_path = current_path + "/Doc/Movie_review_doc.pickle"
+                document_all_words_path = current_path + "/Doc/Movie_review_all_words.pickle"
                 training_features_path = current_path + "/Doc/Training_Features.pickle"
                 word_features_path = current_path + "/Doc/Word_Features.pickle"
 
@@ -104,6 +105,7 @@ def train_classifier(input, load_mode = 1):
                 print("successfully export pikle from path ")
                 FileInteraction.export_pickle(word_features_path, Doc_dict['word_features'])
                 FileInteraction.export_pickle(training_features_path, featuresets)
+                FileInteraction.export_pickle(document_all_words_path, Doc_dict['all_words'])
                 training_set_length = int(len(featuresets)*2/3)
                 training_set = featuresets[:training_set_length]
                 testing_set = featuresets[training_set_length:]

@@ -143,7 +143,7 @@ def check_reliable_dataset(dataset={}, Doc_dict={}):
 def check_in_datapool(all_words={}, data_pool={}):
     for k,v in all_words.items():
         if k in data_pool.keys():
-            data_pool[k]+v
+            data_pool[k]= data_pool[k] + v
         else:
             data_pool[k]=v
     return data_pool
@@ -191,6 +191,9 @@ def build_confusion_matrix(words, count, word_features=[], classifier_input=[]):
 
 def check_accuracy(dict={}, classifier_input=[], count=0):
     classifier_dict = {}
+    test_result = []
+    gold_result = []
+
     for classifier in classifier_input:
         classifer_path = current_path + '/Doc/' + classifier + '.pickle'
         trained_classifer = FileInteraction.import_pickle(classifer_path)
@@ -200,6 +203,13 @@ def check_accuracy(dict={}, classifier_input=[], count=0):
     for k, v in classifier_dict.items():
         acc = (accuracy(v, testing_set)) * 100
         print("classifier '", k, "' accuracy percent:", acc)
+        for i in range(len(testing_set)):
+            test_result.append(v.classify(testing_set[i][0]))
+            gold_result.append(testing_set[i][1])
+        CM = nltk.ConfusionMatrix(gold_result, test_result)
+        print(k, "Classifier: ")
+        print(CM)
+
         # save classifier to csv
         if k is "Naivebayes":
             sheet1.write(count, 1, acc)
@@ -240,10 +250,11 @@ def test(file_path):
     testing_set = []
     classifier_dict = {}
     count = 0
-    number_of_products=10
+    number_of_products=0
 
     data_pool_path = current_path + "/Doc/Datapool.pickle"
-    data_pool = FileInteraction.import_pickle(data_pool_path)
+    #data_pool = FileInteraction.import_pickle(data_pool_path)
+    data_pool={}
     #check_in_datapool(data_pool, data_pool)
     #FileInteraction.export_pickle(data_pool_path, words)
     #data_pool = FileInteraction.import_pickle(data_pool_path)
@@ -264,7 +275,7 @@ def test(file_path):
     sheet1.write(0, 12, "Number of words")
 
 
-    data_path = file_path + "/2.xls"
+    data_path = file_path + "/export.xls"
     classifier_input = ['Naivebayes', 'MultinomialNB', 'BernoulliNB', 'LogisticRegression', 'SGDClassifier',
                         'SVC', 'LinearSVC', 'NuSVC', 'Combination_Classifier']
     file_content = FileInteraction.open_file(data_path)  # file path, length
@@ -312,9 +323,11 @@ def test(file_path):
     print("productID: All data")
     sheet1.write(count, 0, "All data")
 
-    check_accuracy(dict, classifier_input, count)
+    #check_accuracy(dict, classifier_input, count)
 
+    print("finish original classifier's confusion matrix ")
 
+    '''
     #=========== for the confusion matrix ==============
     sheet1_confusion_matrix.write(0, 0, "prediction Count")
     sheet1_confusion_matrix.write(0, 1, "Naivebayes")
@@ -338,7 +351,7 @@ def test(file_path):
     csv_path = file_path + '/python_NLP/Doc/exportCSV/prediction_selfTrained.csv'
     book_confusion_matrix.save(csv_path)
     print("success saving prediction.csv")
-    input()
+    '''
 
     # training new classifier here
     data_path = file_path + "/export.xls"
@@ -356,7 +369,9 @@ def test(file_path):
 
     print("start testing re-traing")
     data_pool_all_words = check_in_datapool(dict['data_pool'], data_pool)
-    most_freq = [i[0] for i in data_pool_all_words.most_common()]
+    data_pool_all_words = sorted(data_pool_all_words.items(), key=lambda x: x[1], reverse=True)
+    most_freq = [i[0] for i in data_pool_all_words]
+    #most_freq = [i[0] for i in data_pool_all_words.most_common()]
     word_features = most_freq[:2000]
     print("get new 2000 words")
     featuresets = [(Features.find_features(rev, word_features), cate) for (rev, cate) in
@@ -404,8 +419,18 @@ def test(file_path):
             trained_classifer = classifier
         if classifier_name != 'Combination_Classifier':
             trained_classifer = classifier.train(training_set)
+
+
         acc = (accuracy(trained_classifer, testing_set)) * 100
         print("classifier '", classifier_name, "' accuracy percent:", acc)
+        test_result = []
+        gold_result = []
+        for i in range(len(testing_set)):
+            test_result.append(trained_classifer.classify(testing_set[i][0]))
+            gold_result.append(testing_set[i][1])
+        CM = nltk.ConfusionMatrix(gold_result, test_result)
+        print(classifier_name, "Classifier: ")
+        print(CM)
         classifer_path = current_path + '/Doc/' + classifier_name + '_retraining.pickle'
         FileInteraction.export_pickle(classifer_path, trained_classifer)
 
