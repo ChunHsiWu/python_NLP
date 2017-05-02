@@ -21,6 +21,9 @@ from Lib.Classifier import VoteClassifier
 # setup for saving csv
 book = xlwt.Workbook(encoding="utf-8")
 sheet1 = book.add_sheet("Sheet 1")
+# establish the csvfile
+book_confusion_matrix = xlwt.Workbook(encoding="utf-8")
+sheet1_confusion_matrix = book_confusion_matrix.add_sheet("Sheet 1")
 
 def check_reliable_dataset(dataset={}, Doc_dict={}):
     state = 0
@@ -82,7 +85,7 @@ def check_reliable_dataset(dataset={}, Doc_dict={}):
                 for k,v in dataset.items():
                     if float(v[2]) == 5:  # users satisfy products
                         x, y = v[1].split("/")
-                        if (float(x) >= 2 and float(x) / float(y) > 0.7) or (float(x) >= 2 and sid.polarity_scores(v[3].lower())['pos'] > 0) :  # dataset is reliable
+                        if (float(x) >= 2 and float(x) / float(y) > 0.7) or (float(x) >= 3 and sid.polarity_scores(v[3].lower())['pos'] > 0):  # dataset is reliable
 
                             words_array = ExtractWords.extract_useful_words(v[4])
 
@@ -99,7 +102,7 @@ def check_reliable_dataset(dataset={}, Doc_dict={}):
 
                     elif float(v[2]) < 3: # users don't satisfy products
                         x, y = v[1].split("/")
-                        if (float(x) >= 2 and float(x) / float(y) > 0.7) or (float(x) >= 2 and sid.polarity_scores(v[3].lower())['neg'] > 0) :  # dataset is reliable
+                        if (float(x) >= 2 and float(x) / float(y) > 0.7) or (float(x) >= 3 and sid.polarity_scores(v[3].lower())['neg'] > 0):  # dataset is reliable
                             words_array = ExtractWords.extract_useful_words(v[4])
 
 
@@ -148,6 +151,43 @@ def check_in_datapool(all_words={}, data_pool={}):
 def training_classifier(dict={}, classifier_input=[]):
     pass
 
+def build_confusion_matrix(words, count, word_features=[], classifier_input=[]):
+    # initia parameters
+    classifier_dict = {}
+
+    # load all the classifiers
+    for classifier in classifier_input:
+        classifer_path = current_path + '/Doc/' + classifier + '_retraining.pickle'
+        trained_classifer = FileInteraction.import_pickle(classifer_path)
+        classifier_dict[classifier] = trained_classifer
+    # create features
+    feats = Features.find_features(words, word_features)
+    testing_set = feats
+    #print('testing_set =', testing_set)
+    for k, v in classifier_dict.items():
+        prediction = v.classify(testing_set)
+        if k is "Naivebayes":
+            sheet1_confusion_matrix.write(count, 1, prediction)
+        elif k is "MultinomialNB":
+            sheet1_confusion_matrix.write(count, 2, prediction)
+        elif k is "BernoulliNB":
+            sheet1_confusion_matrix.write(count, 3, prediction)
+        elif k is "LogisticRegression":
+            sheet1_confusion_matrix.write(count, 4, prediction)
+        elif k is "SGDClassifier":
+            sheet1_confusion_matrix.write(count, 5, prediction)
+        elif k is "SVC":
+            sheet1_confusion_matrix.write(count, 6, prediction)
+        elif k is "LinearSVC":
+            sheet1_confusion_matrix.write(count, 7, prediction)
+        elif k is "NuSVC":
+            sheet1_confusion_matrix.write(count, 8, prediction)
+        else:
+            sheet1_confusion_matrix.write(count, 9, prediction)
+            sheet1_confusion_matrix.write(count, 10, v.confidence(testing_set) * 100)
+    #print("classifier", k, "Classification:", v.classify(testing_set))
+    #print("with confidence", v.confidence(testing_set) * 100)
+    #print("original polarity = ", polarity)
 
 def check_accuracy(dict={}, classifier_input=[], count=0):
     classifier_dict = {}
@@ -200,7 +240,7 @@ def test(file_path):
     testing_set = []
     classifier_dict = {}
     count = 0
-    number_of_products=0
+    number_of_products=10
 
     data_pool_path = current_path + "/Doc/Datapool.pickle"
     data_pool = FileInteraction.import_pickle(data_pool_path)
@@ -224,7 +264,7 @@ def test(file_path):
     sheet1.write(0, 12, "Number of words")
 
 
-    data_path = file_path + "/export.xls"
+    data_path = file_path + "/2.xls"
     classifier_input = ['Naivebayes', 'MultinomialNB', 'BernoulliNB', 'LogisticRegression', 'SGDClassifier',
                         'SVC', 'LinearSVC', 'NuSVC', 'Combination_Classifier']
     file_content = FileInteraction.open_file(data_path)  # file path, length
@@ -271,12 +311,39 @@ def test(file_path):
     sheet1.write(count, 12, len(dict['word_features']))
     print("productID: All data")
     sheet1.write(count, 0, "All data")
+
     check_accuracy(dict, classifier_input, count)
+
+
+    #=========== for the confusion matrix ==============
+    sheet1_confusion_matrix.write(0, 0, "prediction Count")
+    sheet1_confusion_matrix.write(0, 1, "Naivebayes")
+    sheet1_confusion_matrix.write(0, 2, "MultinomialNB")
+    sheet1_confusion_matrix.write(0, 3, "BernoulliNB")
+    sheet1_confusion_matrix.write(0, 4, "LogisticRegression")
+    sheet1_confusion_matrix.write(0, 5, "SGDClassifier")
+    sheet1_confusion_matrix.write(0, 6, "SVC")
+    sheet1_confusion_matrix.write(0, 7, "LinearSVC")
+    sheet1_confusion_matrix.write(0, 8, "NuSVC")
+    sheet1_confusion_matrix.write(0, 9, "Combination_Classifier")
+    sheet1_confusion_matrix.write(0, 10, "Confidence")
+    sheet1_confusion_matrix.write(0, 11, "Target polarity")
+    count_prediction = 1
+    docs = dict['document']
+    for i in docs:
+        sheet1_confusion_matrix.write(count_prediction, 0, count_prediction)
+        build_confusion_matrix(i[0], count_prediction, dict['word_features'], classifier_input)
+        sheet1_confusion_matrix.write(count_prediction, 11, i[1])
+        count_prediction += 1
+    csv_path = file_path + '/python_NLP/Doc/exportCSV/prediction_selfTrained.csv'
+    book_confusion_matrix.save(csv_path)
+    print("success saving prediction.csv")
+    input()
 
     # training new classifier here
     data_path = file_path + "/export.xls"
-    classifier_input = ['Naivebayes', 'LogisticRegression', 'LinearSVC', 'Combination_Classifier']
-    #classifier_input = ['Combination_Classifier']
+    #classifier_input = ['Naivebayes', 'LogisticRegression', 'LinearSVC','NuSVC', 'Combination_Classifier']
+    #classifier_input = ['NuSVC']
     Naivebayes_classifier_path = current_path + "/Doc/Naivebayes_retraining.pickle"
     BernoulliNB_classifer_path = current_path + "/Doc/BernoulliNB_retraining.pickle"
     MultinomialNB_classifer_path = current_path + "/Doc/MultinomialNB_retraining.pickle"
@@ -300,7 +367,7 @@ def test(file_path):
     print("get new training & testing sets")
 
     for classifier_name in classifier_input:
-        print("straing re-training classifier: ", classifier_name)
+
         if classifier_name == 'Naivebayes':
             classifier = nltk.NaiveBayesClassifier
 
@@ -323,7 +390,7 @@ def test(file_path):
             classifier = SklearnClassifier(LinearSVC())
 
         elif classifier_name == 'NuSVC':
-            classifier = SklearnClassifier(NuSVC())
+            classifier = SklearnClassifier(NuSVC(kernel='rbf',nu=0.01))
 
         elif classifier_name == 'Combination_Classifier':
             Naivebayes_classifer = FileInteraction.import_pickle(Naivebayes_classifier_path)
@@ -337,18 +404,27 @@ def test(file_path):
             trained_classifer = classifier
         if classifier_name != 'Combination_Classifier':
             trained_classifer = classifier.train(training_set)
-        print("successful re-training classifier")
         acc = (accuracy(trained_classifer, testing_set)) * 100
         print("classifier '", classifier_name, "' accuracy percent:", acc)
         classifer_path = current_path + '/Doc/' + classifier_name + '_retraining.pickle'
         FileInteraction.export_pickle(classifer_path, trained_classifer)
-        print("success pickle classifier: ", classifier_name)
 
-
+    '''
+    # =========== for the confusion matrix ==============
+    count_prediction = 1
+    docs = dict['document']
+    for i in docs:
+        sheet1_confusion_matrix.write(count_prediction, 0, count_prediction)
+        build_confusion_matrix(i[0], count_prediction, dict['word_features'], classifier_input)
+        sheet1_confusion_matrix.write(count_prediction, 11, i[1])
+        count_prediction += 1
+    csv_path = file_path + '/python_NLP/Doc/exportCSV/prediction_selftrained.csv'
+    book_confusion_matrix.save(csv_path)
+    print("success saving prediction.csv")
 
     csv_path = file_path + '/python_NLP/Doc/exportCSV/Amazon_Review.csv'
     book.save(csv_path)
-
+    '''
     training_features_path = current_path + "/Doc/Training_Features.pickle"
     #for (rev, cate) in dict['document']:
     #    testing_set.append((Features.find_features(rev, dict['word_features']), cate))

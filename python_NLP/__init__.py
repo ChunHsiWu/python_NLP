@@ -82,7 +82,7 @@ def main():
                 # print(test_content[str(ID)][4])Combination_Classifier
                 # analysed_words = AnalyseWords.analysing_words(test_content[test_ID][4])
                 print(dict[test_ID])
-                for i in range(1):
+                for i in range(12):
                     analysed_words = AnalyseWords.analysing_words(dict[test_ID],0, i+1)
                 # print(analysed_words)
                 state = 40

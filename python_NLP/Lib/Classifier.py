@@ -172,7 +172,7 @@ def train_classifier(input, load_mode = 1):
 
                         #classifier = VoteClassifier(Naivebayes_classifer, BernoulliNB_classifer, MultinomialNB_classifer,
                         #LogisticRegression_classifer, SGDClassifier_classifer, LinearSVC_classifer, NuSVC_classifer)
-                        classifier = VoteClassifier(Naivebayes_classifer, LogisticRegression_classifer, LinearSVC_classifer)
+                        classifier = VoteClassifier(MultinomialNB_classifer, LogisticRegression_classifer, NuSVC_classifer)
                         trained_classifer = classifier
                         #print("classifier '", input_classifier, "' accuracy percent:",
                         #      (nltk.classify.accuracy(trained_classifer, testing_set)) * 100)
