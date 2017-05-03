@@ -12,6 +12,7 @@ from sklearn.linear_model import LogisticRegression, SGDClassifier
 from sklearn.svm import SVC, LinearSVC, NuSVC
 import xlrd
 import xlwt
+import random
 from Lib import Classifier
 from Lib import Features
 import os
@@ -141,12 +142,13 @@ def check_reliable_dataset(dataset={}, Doc_dict={}):
 
 
 def check_in_datapool(all_words={}, data_pool={}):
+    data_pool_temp = data_pool.copy()
     for k,v in all_words.items():
         if k in data_pool.keys():
-            data_pool[k]= data_pool[k] + v
+            data_pool_temp[k]= data_pool[k] + v
         else:
-            data_pool[k]=v
-    return data_pool
+            data_pool_temp[k]=v
+    return data_pool_temp
 
 def training_classifier(dict={}, classifier_input=[]):
     pass
@@ -253,6 +255,7 @@ def test(file_path):
     number_of_products=0
 
     data_pool_path = current_path + "/Doc/Datapool.pickle"
+    document_all_words_path = current_path + "/Doc/Movie_review_all_words.pickle"
     #data_pool = FileInteraction.import_pickle(data_pool_path)
     data_pool={}
     #check_in_datapool(data_pool, data_pool)
@@ -286,7 +289,8 @@ def test(file_path):
     word_features_path = current_path + "/Doc/Word_Features.pickle"
     Doc_dict['document'] = FileInteraction.import_pickle(document_path)
     Doc_dict['word_features'] = FileInteraction.import_pickle(word_features_path)
-
+    Doc_dict['all_words'] = FileInteraction.import_pickle(document_all_words_path)
+    '''
     if(number_of_products > 0):
         toplist = find_most_product(file_content, number_of_products)
 
@@ -327,7 +331,7 @@ def test(file_path):
 
     print("finish original classifier's confusion matrix ")
 
-    '''
+    
     #=========== for the confusion matrix ==============
     sheet1_confusion_matrix.write(0, 0, "prediction Count")
     sheet1_confusion_matrix.write(0, 1, "Naivebayes")
@@ -353,6 +357,9 @@ def test(file_path):
     print("success saving prediction.csv")
     '''
 
+
+
+
     # training new classifier here
     data_path = file_path + "/export.xls"
     #classifier_input = ['Naivebayes', 'LogisticRegression', 'LinearSVC','NuSVC', 'Combination_Classifier']
@@ -367,15 +374,39 @@ def test(file_path):
     file_content = FileInteraction.open_file(data_path)  # file path, length
     dict = check_reliable_dataset(file_content)
 
+    # ===========   test retraining algorithm   ============
+
+    # only for the first time, will change to upload by file in the future
+    data_pool['all_words'] = Doc_dict['all_words']
+    docs = Doc_dict['document']
+    for i in dict['document']:
+        docs.append(i)
+    random.shuffle(docs)
+    data_pool['document'] = docs[:2000]
+
     print("start testing re-traing")
-    data_pool_all_words = check_in_datapool(dict['data_pool'], data_pool)
+    data_pool_all_words = check_in_datapool(dict['data_pool'], data_pool['all_words'])
     data_pool_all_words = sorted(data_pool_all_words.items(), key=lambda x: x[1], reverse=True)
+
+    print("most common 20 words in Movie_review")
+    print(Doc_dict['all_words'].most_common(20))
+    print("most common 20 words in Amazon_review")
+    print(dict['data_pool'].most_common(20))
+    print("most common 20 words in Movie_review")
+    print(data_pool_all_words[:20])
+
+
     most_freq = [i[0] for i in data_pool_all_words]
     #most_freq = [i[0] for i in data_pool_all_words.most_common()]
     word_features = most_freq[:2000]
+
+
+    # ==== havent done yet !!! =====
+
     print("get new 2000 words")
     featuresets = [(Features.find_features(rev, word_features), cate) for (rev, cate) in
-                   dict['document']]
+                   data_pool['document']]
+    #featuresets = [(Features.find_features(rev, word_features), cate) for (rev, cate) in dict['document']]
     training_set_length = int(len(featuresets) * 2 / 3)
     training_set = featuresets[:training_set_length]
     testing_set = featuresets[training_set_length:]
